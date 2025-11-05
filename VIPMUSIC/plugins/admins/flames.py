@@ -87,13 +87,10 @@ def flames_result(name1, name2):
 def make_poster(image_url, name1, name2, title, percentage):
     bg = Image.open(io.BytesIO(requests.get(image_url).content)).convert("RGB")
     bg = bg.resize((900, 600)).filter(ImageFilter.GaussianBlur(4))
-
     stat = ImageStat.Stat(bg)
     brightness = sum(stat.mean[:3]) / 3
     text_color = "black" if brightness > 130 else "white"
-
     draw = ImageDraw.Draw(bg)
-
     try:
         font_title = ImageFont.truetype("arial.ttf", 60)
         font_text = ImageFont.truetype("arial.ttf", 45)
@@ -124,7 +121,7 @@ def emoji_bar(percent):
     return "❤️" * full + "🩷" * (5 - full)
 
 
-# --- TELEGRAM COMMAND ---
+# --- /FLAMES COMMAND ---
 @Client.on_message(filters.command("flames"))
 async def flames_command(client, message):
     try:
@@ -173,6 +170,60 @@ async def flames_command(client, message):
         await message.reply_text(f"⚠️ Error: {e}")
 
 
+# --- /MATCH COMMAND ---
+@Client.on_message(filters.command("match"))
+async def match_command(client, message):
+    try:
+        if not message.chat.type in ["supergroup", "group"]:
+            await message.reply_text("❌ This command only works in groups!", quote=True)
+            return
+
+        user = message.from_user
+        members = []
+        async for member in client.get_chat_members(message.chat.id):
+            if not member.user.is_bot and member.user.id != user.id:
+                members.append(member.user)
+            if len(members) >= 50:
+                break
+
+        if len(members) < 3:
+            await message.reply_text("⚠️ Not enough members in this group to match!", quote=True)
+            return
+
+        selected = random.sample(members, 3)
+
+        text = f"🎯 **Top 3 Matches for [{user.first_name}](tg://user?id={user.id})** 💘\n\n"
+        for idx, member in enumerate(selected, start=1):
+            name = member.first_name or "Unknown"
+            uid = member.id
+            tag = f"[{name}](tg://user?id={uid})"
+            result_letter = random.choice(list(RESULTS.keys()))
+            result = RESULTS[result_letter]
+            percent = random.randint(50, 100)
+
+            alert = "💞 **Perfect Couple Alert!** 💞" if percent >= 85 and result_letter in ["L", "S", "M"] else ""
+
+            text += (
+                f"{idx}. {tag} → {result['title']} ({percent}%) {emoji_bar(percent)}\n"
+                f"📝 {result['desc']}\n{alert}\n\n"
+            )
+
+        all_images = [img for res in RESULTS.values() for img in res["images"]]
+        image_url = random.choice(all_images)
+
+        await message.reply_photo(
+            photo=image_url,
+            caption=text,
+            parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔁 Try Again", callback_data="match_retry")]
+            ])
+        )
+
+    except Exception as e:
+        await message.reply_text(f"⚠️ Error: {e}")
+
+
 # --- HANDLE CALLBACK BUTTONS ---
 @Client.on_callback_query()
 async def callback_handler(client, cq):
@@ -190,6 +241,8 @@ async def callback_handler(client, cq):
                 "💜 S - Sibling\n",
                 quote=True
             )
+        elif cq.data == "match_retry":
+            await cq.message.reply_text("🎯 Type `/match` again to get new random matches!")
         await cq.answer()
     except Exception as e:
         await cq.message.reply_text(f"⚠️ Callback Error: {e}")
