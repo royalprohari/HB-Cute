@@ -140,7 +140,8 @@ def make_poster(image_url, name1, name2, title, percentage):
     draw_centered_text(530, "✨ Made with ❤️ by Flames Bot", font_small)
 
     bio = io.BytesIO()
-    bio.name = "ANNIEMUSIC/assets/annie/hb-welcome.jpg"
+    #bio.name = "ANNIEMUSIC/assets/annie/hb-welcome.jpg"
+    bio.name = "flames_result.jpg"
     bg.save(bio, "JPEG")
     bio.seek(0)
     return bio
