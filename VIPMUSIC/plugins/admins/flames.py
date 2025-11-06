@@ -143,14 +143,14 @@ def make_poster(image_url, name1, name2, title, percentage):
         w, h = draw.textsize(text, font=font)
         draw.text(((900 - w) / 2, y), text, fill=text_color, font=font)
 
-    draw_centered_text(40, "✨ F L A M E S ✨", font_title)
-    draw_centered_text(170, f"💖 {name1.title()} ❤️ {name2.title()} 💖", font_text)
-    draw_centered_text(270, f"💫 Result: {title}", font_text)
-    draw_centered_text(360, f"💞 Compatibility: {percentage}%", font_small)
-    draw_centered_text(530, "✨ Made with ❤️ by Flames Bot", font_small)
+    draw_centered_text(40, "𝑭 𖹭 𝑳 𖹭 𝑨 𖹭 𝑴 𖹭 𝑬 𖹭 𝑺", font_title)
+    draw_centered_text(170, f"ᰔᩚ {name1.title()} ❤️ {name2.title()} ᰔᩚ", font_text)
+    draw_centered_text(270, f"✰ Result: {title}", font_text)
+    draw_centered_text(360, f"⋆.𐙚 ̊ Compatibility: {percentage}%", font_small)
+    draw_centered_text(530, "˙⋆✮ мᴀᴅᴇ ᴡɪᴛʜ ❤️ 𝐇в-𝐅ᴀᴍ"), # font_small)
 
     bio = io.BytesIO()
-    bio.name = "flames_result.jpg"   # safer name
+    bio.name = "ANNIEMUSIC/assets/annie/ANNIECP.png" #"flames_result.jpg"   
     bg.save(bio, "JPEG")
     bio.seek(0)
     return bio
