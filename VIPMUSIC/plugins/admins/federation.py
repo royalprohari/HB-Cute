@@ -47,7 +47,7 @@ BOT_ID = app.id
 
 from config import LOG_GROUP_ID, OWNER_ID
 from VIPMUSIC.plugins.feds.functions import extract_user, extract_user_and_reason  # adjust path if needed
-from core.decorator.errors import capture_err  # adjust if your project has a different path
+from VIPMUSIC.plugins.feds.errors import capture_err  # adjust if your project has a different path
 
 __MODULE__ = "Federation"
 __HELP__ = """
