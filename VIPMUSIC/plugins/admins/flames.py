@@ -5,6 +5,7 @@ from VIPMUSIC import app
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageStat
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.enums import ChatType
 
 # --- FLAMES RESULT CONFIG ---
 RESULTS = {
@@ -215,7 +216,7 @@ async def flames_command(client, message):
 @app.on_message(filters.command("match"))
 async def match_command(client, message):
     try:
-        if not message.chat.type in ["supergroup", "group"]:
+        if message.chat.type not in (ChatType.SUPERGROUP, ChatType.GROUP, "supergroup", "group"):
             await message.reply_text("❌ This command only works in groups!", quote=True)
             return
 
