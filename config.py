@@ -163,7 +163,10 @@ MENTION_USERNAMES = [
     "Shasha",
     "bat",
                     ]
-START_REACTIONS = ["❤️", "🎧", "✨", "🔥", "💫", "💥", "🎶", "🌸", "⚡"]
+START_REACTIONS = [
+    "❤️", "💖", "💘", "💞", "💓", "🎧", "✨", "🔥", "💫",
+    "💥", "🎶", "🌸", "⚡", "😍", "🥰", "💎", "🌙", "🌹"
+]
 
 def time_to_seconds(time):
     stringt = str(time)
