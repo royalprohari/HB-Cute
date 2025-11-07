@@ -4,6 +4,14 @@ from typing import Dict, List, Union
 from VIPMUSIC import userbot
 from VIPMUSIC.core.mongo import mongodb
 
+from motor.motor_asyncio import AsyncIOMotorClient
+from config import MONGO_DB_URI, MONGO_DB_NAME
+
+# Initialize MongoDB client
+_mongo_client = AsyncIOMotorClient(MONGO_DB_URI)
+mongodb = _mongo_client[MONGO_DB_NAME]
+
+
 authdb = mongodb.adminauth
 authuserdb = mongodb.authuser
 autoenddb = mongodb.autoend
