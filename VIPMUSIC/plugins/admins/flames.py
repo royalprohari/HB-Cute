@@ -157,7 +157,7 @@ def make_poster(image_url, name1, name2, title_cap, percentage):
     def safe_text(text):
         return text.encode("ascii", "ignore").decode("ascii")
     
-    draw_centered_text(40, "𝑭  𝑳  𝑨  𝑴  𝑬  𝑺", font_title)
+    draw_centered_text(40, "F L A M E S", font_title)
     draw_centered_text(170, f"🔥 {name1.title()} ❤️ {name2.title()}", font_text)
     draw_centered_text(270, f"✨ Result: {title_cap}", font_text)
     draw_centered_text(360, f"💞 Compatibility: {percentage}%", font_small)
