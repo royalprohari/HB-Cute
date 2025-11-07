@@ -138,37 +138,32 @@ def make_poster(image_url, name1, name2, title, percentage):
 async def make_poster(image_url, name1, name2, title, percentage):
     bg = None
     try:
-        # Async image download
-        async with aiohttp.ClientSession() as session:
-            async with session.get(image_url, timeout=10) as resp:
-                if resp.status == 200:
-                    content = await resp.read()
+        async with aiohttp.ClientSession() as s:
+            async with s.get(image_url, timeout=10) as r:
+                if r.status == 200:
+                    content = await r.read()
                     bg = Image.open(io.BytesIO(content)).convert("RGB")
-                else:
-                    print(f"[FLAMES] Image download failed: HTTP {resp.status}")
     except Exception as e:
-        print(f"[FLAMES] Image download failed: {e}")
+        print(f"[FLAMES] download failed: {e}")
 
-    # fallback background
     if bg is None:
         bg = Image.new("RGB", (900, 600), (255, 192, 203))
 
     bg = bg.resize((900, 600)).filter(ImageFilter.GaussianBlur(4))
     stat = ImageStat.Stat(bg)
-    brightness = sum(stat.mean[:3]) / 3
-    text_color = "black" if brightness > 130 else "white"
+    text_color = "black" if sum(stat.mean[:3])/3 > 130 else "white"
 
     draw = ImageDraw.Draw(bg)
     try:
-        font_title = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans-Bold.ttf", 60)
-        font_text = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans.ttf", 45)
-        font_small = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans.ttf", 35)
+        f_title = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans-Bold.ttf", 60)
+        f_text  = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans.ttf", 45)
+        f_small = ImageFont.truetype("VIPMUSIC/assets/DejaVuSans.ttf", 35)
     except:
-        font_title = font_text = font_small = ImageFont.load_default()
+        f_title = f_text = f_small = ImageFont.load_default()
 
-    def draw_centered_text(y, text, font):
-        w, h = draw.textsize(text, font=font)
-        draw.text(((900 - w) / 2, y), text, fill=text_color, font=font)
+    def center(y, t, f):
+        w, _ = draw.textsize(t, font=f)
+        draw.text(((900 - w)/2, y), t, fill=text_color, font=f)
 
     draw_centered_text(40, "𝑭 𖹭 𝑳 𖹭 𝑨 𖹭 𝑴 𖹭 𝑬 𖹭 𝑺") #, font_title)
     draw_centered_text(170, f"✰ {name1.title()} ❤️ {name2.title()} ✰", font_text)
