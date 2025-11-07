@@ -154,7 +154,7 @@ def make_poster(image_url, name1, name2, title, percentage):
     draw_centered_text(530, "˙⋆✮ мᴀᴅᴇ ᴡɪᴛʜ ❤️ 𝐇в-𝐅ᴀᴍ ✮⋆˙") #, font_small)
 
     bio = io.BytesIO()
-    bio.name = "ANNIEMUSIC/assets/annie/ANNIECP.png" #"flames_result.jpg"   
+    bio.name = "flames_result.jpg"   
     bg.save(bio, "JPEG")
     bio.seek(0)
     return bio
