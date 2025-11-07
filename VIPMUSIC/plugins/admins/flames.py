@@ -16,14 +16,7 @@ RESULTS = {
         "title_cap": "Friends",
         "desc": "A strong bond filled with laughter, trust, and memories. You two are perfect as friends forever! 🤝",
         "images": [
-            "https://files.catbox.moe/mus8qn.jpg",
-"https://files.catbox.moe/n7t6ma.jpg",
-"https://files.catbox.moe/tb66lq.jpg",
-"https://files.catbox.moe/imwrq4.jpg",
-"https://files.catbox.moe/3u3dcp.jpg",
-"https://files.catbox.moe/70fnlf.jpg",
-"https://files.catbox.moe/i8r1dm.jpg",
-"https://files.catbox.moe/5u11yx.jpg"
+            f"VIPMUSIC/assets/flames/friends/{result_letter.lower()}{random.randint(1,5)}.jpg"
         ]
     },
     "L": {
@@ -31,14 +24,7 @@ RESULTS = {
         "title_cap": "Love",
         "desc": "There’s a spark and magic between you both — a true love story is forming! 💞",
         "images": [
-            "https://files.catbox.moe/mus8qn.jpg",
-            "https://files.catbox.moe/n7t6ma.jpg",
-            "https://files.catbox.moe/tb66lq.jpg",
-            "https://files.catbox.moe/imwrq4.jpg",
-            "https://files.catbox.moe/3u3dcp.jpg",
-            "https://files.catbox.moe/70fnlf.jpg",
-            "https://files.catbox.moe/i8r1dm.jpg",
-            "https://files.catbox.moe/5u11yx.jpg"
+            f"VIPMUSIC/assets/flames/love/{result_letter.lower()}{random.randint(1,5)}.jpg"
         ]
     },
     "A": {
@@ -46,14 +32,7 @@ RESULTS = {
         "title_cap": "Affection",
         "desc": "You both care deeply for each other — gentle hearts and pure emotion bloom! 🌸",
         "images": [
-            "https://files.catbox.moe/mus8qn.jpg",
-"https://files.catbox.moe/n7t6ma.jpg",
-"https://files.catbox.moe/tb66lq.jpg",
-"https://files.catbox.moe/imwrq4.jpg",
-"https://files.catbox.moe/3u3dcp.jpg",
-"https://files.catbox.moe/70fnlf.jpg",
-"https://files.catbox.moe/i8r1dm.jpg",
-"https://files.catbox.moe/5u11yx.jpg"
+            f"VIPMUSIC/assets/flames/affection/{result_letter.lower()}{random.randint(1,5)}.jpg"
         ]
     },
     "M": {
@@ -61,14 +40,7 @@ RESULTS = {
         "title_cap": "Marriage",
         "desc": "Destiny has already written your names together — a wedding bell symphony awaits! 💫",
         "images": [
-            "https://files.catbox.moe/mus8qn.jpg",
-"https://files.catbox.moe/n7t6ma.jpg",
-"https://files.catbox.moe/tb66lq.jpg",
-"https://files.catbox.moe/imwrq4.jpg",
-"https://files.catbox.moe/3u3dcp.jpg",
-"https://files.catbox.moe/70fnlf.jpg",
-"https://files.catbox.moe/i8r1dm.jpg",
-"https://files.catbox.moe/5u11yx.jpg"
+            f"VIPMUSIC/assets/flames/marriage/{result_letter.lower()}{random.randint(1,5)}.jpg"
         ]
     },
     "E": {
@@ -76,14 +48,7 @@ RESULTS = {
         "titlr": "Ememy",
         "desc": "Clashing energies and fiery tempers — maybe not meant to be this time 😅",
         "images": [
-            "https://files.catbox.moe/mus8qn.jpg",
-"https://files.catbox.moe/n7t6ma.jpg",
-"https://files.catbox.moe/tb66lq.jpg",
-"https://files.catbox.moe/imwrq4.jpg",
-"https://files.catbox.moe/3u3dcp.jpg",
-"https://files.catbox.moe/70fnlf.jpg",
-"https://files.catbox.moe/i8r1dm.jpg",
-"https://files.catbox.moe/5u11yx.jpg"
+            f"VIPMUSIC/assets/flames/enemy/{result_letter.lower()}{random.randint(1,5)}.jpg"
         ]
     },
     "S": {
@@ -91,14 +56,7 @@ RESULTS = {
         "title_cap": "Siblings",
         "desc": "You both share a sibling-like connection — teasing, caring, and protective 💫",
         "images": [
-            "https://files.catbox.moe/mus8qn.jpg",
-"https://files.catbox.moe/n7t6ma.jpg",
-"https://files.catbox.moe/tb66lq.jpg",
-"https://files.catbox.moe/imwrq4.jpg",
-"https://files.catbox.moe/3u3dcp.jpg",
-"https://files.catbox.moe/70fnlf.jpg",
-"https://files.catbox.moe/i8r1dm.jpg",
-"https://files.catbox.moe/5u11yx.jpg"
+            f"VIPMUSIC/assets/flames/siblings/{result_letter.lower()}{random.randint(1,5)}.jpg"
         ]
     }
 }
