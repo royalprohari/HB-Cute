@@ -88,17 +88,10 @@ async def is_admin_or_sudo(client, message: Message) -> Tuple[bool, Optional[str
 
 
 # -------------------- COMMAND: /reaction --------------------
-@app.on_message(filters.command(["reaction", "Reaction", "REACTION"]) & ~BANNED_USERS)
+@app.on_message(filters.command("reaction") & filters.chat_type.groups & ~BANNED_USERS)
 async def toggle_reaction(client, message: Message):
     """Enable or disable reaction bot in this chat."""
-    if not message.from_user:
-        return
-
     chat_id = message.chat.id
-    chat_type = getattr(message.chat, "type", None)
-    if chat_type not in (ChatType.GROUP, ChatType.SUPERGROUP):
-        return await message.reply_text("❌ This command works only in groups/supergroups.", quote=True)
-
     args = message.text.split(maxsplit=1)
 
     # No argument → show current status
@@ -142,7 +135,7 @@ async def toggle_reaction(client, message: Message):
 
 # -------------------- AUTO REACT --------------------
 @app.on_message(
-    filters.group & ~BANNED_USERS &
+    filters.chat_type.groups & ~BANNED_USERS &
     (filters.text | filters.sticker | filters.photo | filters.video | filters.document)
 )
 async def auto_react(client, message: Message):
