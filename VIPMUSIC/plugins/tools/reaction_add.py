@@ -5,11 +5,10 @@ from typing import Set, Tuple, Optional
 
 from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram.enums import ChatMemberStatus
+from pyrogram.enums import ChatMemberStatus, ChatType
 from VIPMUSIC import app
 from config import BANNED_USERS, MENTION_USERNAMES, START_REACTIONS, OWNER_ID
 from VIPMUSIC.utils.database import mongodb, get_sudoers
-
 
 # ---------------- DATABASE ----------------
 COLLECTION = mongodb["reaction_mentions"]
@@ -35,15 +34,12 @@ asyncio.get_event_loop().create_task(load_custom_mentions())
 
 # ---------------- ADMIN CHECK ----------------
 async def is_admin_or_sudo(client, message: Message) -> Tuple[bool, Optional[str]]:
-    """
-    Robust admin check that works in normal groups, supergroups, and linked channels.
-    Returns (is_admin_bool, debug_string_or_None)
-    """
+    """Universal admin check for all group modes and linked channels."""
     user_id = getattr(message.from_user, "id", None)
     chat_id = message.chat.id
-    chat_type = getattr(message.chat, "type", "").lower()
+    chat_type = str(getattr(message.chat, "type", "")).lower()
 
-    # Check sudoers or owner
+    # Owner or sudo
     try:
         sudoers = await get_sudoers()
     except Exception:
@@ -52,21 +48,21 @@ async def is_admin_or_sudo(client, message: Message) -> Tuple[bool, Optional[str
     if user_id and (user_id == OWNER_ID or user_id in sudoers):
         return True, None
 
-    # Allow messages sent as channel (linked chat)
+    # Allow sender_chat if it matches linked channel
     sender_chat_id = getattr(message.sender_chat, "id", None)
     if sender_chat_id:
         try:
             chat = await client.get_chat(chat_id)
             if getattr(chat, "linked_chat_id", None) == sender_chat_id:
-                return True, None  # Linked channel admin
+                return True, None
         except Exception:
             pass
 
-    # If not in a group, reject
-    if chat_type not in ("group", "supergroup", "channel"):
+    # Valid chat type check
+    if chat_type not in ("chattype.group", "chattype.supergroup", "chattype.channel"):
         return False, f"chat_type={chat_type}"
 
-    # If user_id missing, fail
+    # If no user ID (sent as channel)
     if not user_id:
         return False, "no from_user and not linked"
 
@@ -87,7 +83,7 @@ async def add_reaction_name(client, message: Message):
     ok, debug = await is_admin_or_sudo(client, message)
     if not ok:
         await message.reply_text(
-            "⚠️ Only admins or sudo users can add reaction names.\n\nDebug info:\n" + (debug or "unknown"),
+            f"⚠️ Only admins or sudo users can add reaction names.\n\nDebug info:\n{debug or 'unknown'}",
             quote=True,
         )
         print("[addreact fail]", debug)
@@ -102,7 +98,7 @@ async def add_reaction_name(client, message: Message):
 
     name = raw.lower().lstrip("@")
 
-    # Try resolving username to user ID
+    # Try to resolve username → ID
     resolved_id = None
     try:
         user = await client.get_users(name)
@@ -130,7 +126,7 @@ async def delete_reaction_name(client, message: Message):
     ok, debug = await is_admin_or_sudo(client, message)
     if not ok:
         await message.reply_text(
-            "⚠️ Only admins or sudo users can delete reaction names.\n\nDebug info:\n" + (debug or "unknown"),
+            f"⚠️ Only admins or sudo users can delete reaction names.\n\nDebug info:\n{debug or 'unknown'}",
             quote=True,
         )
         print("[delreact fail]", debug)
@@ -189,7 +185,7 @@ async def clear_reactions(client, message: Message):
     ok, debug = await is_admin_or_sudo(client, message)
     if not ok:
         await message.reply_text(
-            "⚠️ Only admins or sudo users can clear reactions.\n\nDebug info:\n" + (debug or "unknown"),
+            f"⚠️ Only admins or sudo users can clear reactions.\n\nDebug info:\n{debug or 'unknown'}",
             quote=True,
         )
         print("[clearreact fail]", debug)
@@ -203,25 +199,26 @@ async def clear_reactions(client, message: Message):
 # ---------------- REACT LOGIC ----------------
 @app.on_message((filters.text | filters.caption) & ~BANNED_USERS)
 async def react_on_mentions(client, message: Message):
-    """Automatically react when trigger keyword or username is mentioned."""
+    """Automatically reacts when trigger keyword or username is mentioned."""
     try:
-        text = (message.text or message.caption or "").lower()
+        text = message.text or message.caption or ""
+        lower_text = text.lower()
         entities = (message.entities or []) + (message.caption_entities or [])
         usernames, user_ids = set(), set()
 
-        # Extract usernames and user IDs from message entities
+        # Extract usernames safely using original text
         for ent in entities:
             if ent.type == "mention":
-                uname = text[ent.offset : ent.offset + ent.length].lstrip("@").lower()
-                usernames.add(uname)
+                uname = text[ent.offset:ent.offset + ent.length].lstrip("@")
+                usernames.add(uname.lower())
             elif ent.type == "text_mention" and ent.user:
                 user_ids.add(ent.user.id)
                 if ent.user.username:
                     usernames.add(ent.user.username.lower())
 
-        # Check entity usernames
+        # Check username triggers
         for uname in usernames:
-            if uname in custom_mentions or f"@{uname}" in text:
+            if uname in custom_mentions or f"@{uname}" in lower_text:
                 await message.react(random.choice(START_REACTIONS))
                 return
 
@@ -231,11 +228,11 @@ async def react_on_mentions(client, message: Message):
                 await message.react(random.choice(START_REACTIONS))
                 return
 
-        # Check raw text for triggers
+        # Check raw text triggers
         for trig in custom_mentions:
             if trig.startswith("id:"):
                 continue
-            if trig in text or f"@{trig}" in text:
+            if trig in lower_text or f"@{trig}" in lower_text:
                 await message.react(random.choice(START_REACTIONS))
                 return
 
