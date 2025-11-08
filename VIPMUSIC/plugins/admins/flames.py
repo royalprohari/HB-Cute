@@ -3,7 +3,7 @@ import io
 import os
 import aiohttp
 from VIPMUSIC import app
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageStat, ImageEnhance
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.enums import ChatType
@@ -11,7 +11,7 @@ from pyrogram.enums import ChatType
 
 # --- CONFIG: FLAMES RESULT TYPES ---
 RESULTS = {
-    "F": {"title": "💛 𝐅ʀɪᴇɴᴅ𝘴", "title_cap": "Friends", "desc": "A strong bond filled with laughter, trust, and memories. You two are perfect as friends forever! 🤝", "folder": "VIPMUSIC/assets/flames/friends", "urls": [""]},
+    "F": {"title": "💛 𝐅ʀɪᴇɴᴅ𝘀", "title_cap": "Friends", "desc": "A strong bond filled with laughter, trust, and memories. You two are perfect as friends forever! 🤝", "folder": "VIPMUSIC/assets/flames/friends", "urls": [""]},
     "L": {"title": "❤️ 𝐋ᴏᴠᴇ", "title_cap": "Love", "desc": "There’s a spark and magic between you both — a true love story is forming! 💞", "folder": "VIPMUSIC/assets/flames/love", "urls": [""]},
     "A": {"title": "💖 𝐀ғғᴇᴄᴛɪᴏɴ", "title_cap": "Affection", "desc": "You both care deeply for each other — gentle hearts and pure emotion bloom! 🌸", "folder": "VIPMUSIC/assets/flames/affection", "urls": [""]},
     "M": {"title": "💍 𝐌ᴀʀʀɪᴀɢᴇ", "title_cap": "Marriage", "desc": "Destiny has already written your names together — a wedding bell symphony awaits! 💫", "folder": "VIPMUSIC/assets/flames/marriage", "urls": [""]},
@@ -96,14 +96,17 @@ def get_font(size):
 
 
 # --- DRAW RESULT ON IMAGE ---
-def draw_result(image, title, desc, percent):
+def draw_result(image, title, desc, percent, name1=None, name2=None):
     image = darken_image(image, 0.55)
     draw = ImageDraw.Draw(image)
     W, H = image.size
 
-    font_title = get_font(int(W * 0.08))
-    font_desc = get_font(int(W * 0.045))
-    font_percent = get_font(int(W * 0.06))
+    # --- Fonts ---
+    font_title = get_font(int(W * 0.07))
+    font_sub = get_font(int(W * 0.045))
+    font_name = get_font(int(W * 0.06))
+    font_small = get_font(int(W * 0.035))
+    font_bottom = get_font(int(W * 0.03))
 
     def shadowed_text(x, y, text, font, fill="white"):
         shadow_color = "black"
@@ -112,13 +115,36 @@ def draw_result(image, title, desc, percent):
             draw.text((x + ox, y + oy), text, font=font, fill=shadow_color)
         draw.text((x, y), text, font=font, fill=fill)
 
-    title_w, _ = draw.textsize(title_cap, font=font_title)
-    percent_w, _ = draw.textsize(f"{percent}%", font=font_percent)
-    desc_w, _ = draw.textsize(desc, font=font_desc)
+    # --- Headings ---
+    flames_title = "🌸 F L A M E S 🌸"
+    tw = draw.textlength(flames_title, font=font_title)
+    shadowed_text((W - tw) / 2, H * 0.10, flames_title, font_title)
 
-    shadowed_text((W - title_w) / 2, H * 0.25, title_cap, font_title)
-    shadowed_text((W - percent_w) / 2, H * 0.45, f"{percent}%", font_percent)
-    shadowed_text((W - desc_w) / 2, H * 0.65, desc, font_desc)
+    # --- Names ---
+    if name1 and name2:
+        names_text = f"{name1.title()} ❤ {name2.title()}"
+        nw = draw.textlength(names_text, font=font_name)
+        shadowed_text((W - nw) / 2, H * 0.28, names_text, font_name)
+
+    # --- Result heading ---
+    result_heading = f"💫 Result: {title}"
+    rw = draw.textlength(result_heading, font=font_sub)
+    shadowed_text((W - rw) / 2, H * 0.43, result_heading, font_sub)
+
+    # --- Compatibility heading ---
+    comp_heading = f"✨ Compatibility: {percent}%"
+    cw = draw.textlength(comp_heading, font=font_sub)
+    shadowed_text((W - cw) / 2, H * 0.56, comp_heading, font_sub)
+
+    # --- Description ---
+    dw = draw.textlength(desc, font=font_small)
+    shadowed_text((W - dw) / 2, H * 0.68, desc, font_small)
+
+    # --- Footer Signature ---
+    footer = "💫 Made With 💖 @HeartBeat_Fam"
+    fw = draw.textlength(footer, font=font_bottom)
+    shadowed_text((W - fw) / 2, H * 0.88, footer, font_bottom)
+
     return image
 
 
@@ -142,31 +168,27 @@ async def flames_command(client, message):
         result = RESULTS[result_letter]
 
         bg = await get_random_image(result_letter)
-        bg = draw_result(bg, result["title_cap"], result["desc"], random.randint(60, 100))
+        percent = random.randint(10, 100)
+        bg = draw_result(bg, result["title_cap"], result["desc"], percent, name1, name2)
         buffer = io.BytesIO()
         bg.save(buffer, "JPEG")
         buffer.seek(0)
 
-        love = random.randint(60, 100) if result_letter in "LAM" else random.randint(10, 70)
-        emotion = random.randint(60, 100)
-        fun = random.randint(50, 100)
-        communication = random.randint(50, 100)
-        trust = random.randint(60, 100)
-
         caption = (
             f"<blockquote>{result['title']}</blockquote>\n"
-            f"<blockquote>💥 **{name1.title()} ❣️ {name2.title()}**\n"
-            f"💞 Compatibility: **{love}%**\n{emoji_bar(love)}\n"
-            f"💓 Emotional Bond: **{emotion}%**\n{emoji_bar(emotion)}\n"
-            f"🤞🏻 Fun Level: **{fun}%**\n{emoji_bar(fun)}\n"
-            f"✨ Communication: **{communication}%**\n{emoji_bar(communication)}\n"
-            f"💯 Trust: **{trust}%**\n{emoji_bar(trust)}</blockquote>\n"
-            f"<blockquote>🔥 {result['desc']}</blockquote>"
+            f"<blockquote>**{name1.title()} x {name2.title()}**\n"
+            f"Compatibility: **{percent}%**\n{emoji_bar(percent)}</blockquote>\n"
+            f"<blockquote>{result['desc']}</blockquote>"
         )
 
         buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry")],
-            [InlineKeyboardButton("🔻 ᴠɪᴇᴡ ᴀʟʟ ʀᴇsᴜʟᴛs 🔻", callback_data="flames_list")]
+            [
+               # InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry"),
+                InlineKeyboardButton("🔻 sʜᴀʀᴇ 🔻", switch_inline_query="flames love test"),
+            #],
+            #[
+                InlineKeyboardButton("🔻 ᴠɪᴇᴡ ᴀʟʟ 🔻", callback_data="flames_list")
+            ]
         ])
 
         await message.reply_photo(photo=buffer, caption=caption, reply_markup=buttons)
