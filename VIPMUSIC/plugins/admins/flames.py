@@ -115,7 +115,6 @@ def make_poster(image_url, name1, name2, title_cap, percentage):
         # --- Resize and blur ---
         bg = bg.resize((900, 600)).filter(ImageFilter.GaussianBlur(4))
 
-"""
         # --- Dark vignette effect ---
         shadow = Image.new("L", bg.size, 0)
         draw_shadow = ImageDraw.Draw(shadow)
@@ -129,7 +128,7 @@ def make_poster(image_url, name1, name2, title_cap, percentage):
         shadow = shadow.filter(ImageFilter.GaussianBlur(100))
         shadow_mask = ImageEnhance.Brightness(shadow).enhance(0.8)
         bg.paste((0, 0, 0), mask=shadow_mask)
-"""
+        
         # --- Brightness adjust ---
         stat = ImageStat.Stat(bg)
         brightness = sum(stat.mean[:3]) / 3
