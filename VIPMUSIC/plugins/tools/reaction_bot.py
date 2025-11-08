@@ -2,6 +2,7 @@ import random
 from pyrogram import filters
 from pyrogram.types import Message
 from VIPMUSIC import app, SUDOERS
+from config import REACTION_BOT  # 👈 import global toggle from config.py
 
 # ---------------- EMOJI CONFIG ----------------
 VALID_REACTIONS = [
@@ -9,9 +10,6 @@ VALID_REACTIONS = [
     "🌸", "🌹", "💎", "🌙", "🔥", "🥰", "😍",
     "😘", "😉", "🤩", "😂", "😎", "💐", "😻", "🥳"
 ]
-
-# Track reaction status per chat (True=ON, False=OFF)
-reaction_status = {}
 
 # Track recently used emojis per chat
 used_emojis = {}
@@ -21,7 +19,6 @@ MAX_HISTORY = 6  # don’t reuse last 6 emojis per chat
 # ---------------- UTILS ----------------
 def next_emoji(chat_id: int) -> str:
     """Return a random emoji not recently used in this chat."""
-    global used_emojis
     if chat_id not in used_emojis:
         used_emojis[chat_id] = []
 
@@ -50,38 +47,41 @@ async def is_admin_or_sudo(chat_id: int, user_id: int) -> bool:
 
 # ---------------- COMMAND HANDLER ----------------
 @app.on_message(filters.command(["reaction"]) & (filters.group | filters.supergroup))
-async def toggle_reaction(_, message: Message):
-    if len(message.command) < 2:
-        state = "ON ✅" if reaction_status.get(message.chat.id) else "OFF ❌"
-        return await message.reply_text(f"🎭 Reaction Bot is currently **{state}**")
-
-    cmd = message.command[1].lower()
-    if cmd not in ["on", "off"]:
-        return await message.reply_text("Usage:\n/reaction on — enable\n/reaction off — disable")
+async def reaction_status_command(_, message: Message):
+    """Show reaction bot state (from config)."""
+    global REACTION_BOT
 
     user_id = message.from_user.id if message.from_user else None
     if not await is_admin_or_sudo(message.chat.id, user_id):
         return await message.reply_text("Only Admins, Owners or Sudoers can use this command!")
 
-    if cmd == "on":
-        reaction_status[message.chat.id] = True
-        await message.reply_text("✅ Reaction Bot is now **ON** — reacting to every message!")
-    else:
-        reaction_status[message.chat.id] = False
-        await message.reply_text("❌ Reaction Bot is now **OFF** — stopped reacting.")
+    # Check argument if provided
+    if len(message.command) > 1:
+        cmd = message.command[1].lower()
+        if cmd == "on":
+            REACTION_BOT = True
+            return await message.reply_text("✅ Reaction Bot **Enabled** globally (config).")
+        elif cmd == "off":
+            REACTION_BOT = False
+            return await message.reply_text("❌ Reaction Bot **Disabled** globally (config).")
+
+    # If no argument, show current status
+    state = "ON ✅" if REACTION_BOT else "OFF ❌"
+    await message.reply_text(f"🎭 Reaction Bot is currently **{state}** (config controlled)")
 
 
 # ---------------- REACTION HANDLER ----------------
 @app.on_message(filters.text & (filters.group | filters.supergroup))
 async def auto_react(_, message: Message):
+    global REACTION_BOT
     chat_id = message.chat.id
 
     # Skip bot commands
     if message.text and message.text.startswith("/"):
         return
 
-    # Check if reactions are enabled in this chat
-    if not reaction_status.get(chat_id):
+    # If globally disabled, skip reacting
+    if not REACTION_BOT:
         return
 
     try:
