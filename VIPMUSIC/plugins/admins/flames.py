@@ -11,94 +11,54 @@ from pyrogram.enums import ChatType
 
 # --- CONFIG: FLAMES RESULT TYPES ---
 RESULTS = {
-    "F": {
-        "title": "💛 𝐅ʀɪᴇɴᴅ𝘀",
-        "title_cap": "Friends",
-        "desc": "A strong bond filled with laughter, trust, and memories. You two are perfect as friends forever! 🤝",
-        "folder": "VIPMUSIC/assets/flames/friends",
-        "urls": [
-            ""
-        ]
-    },
-    "L": {
-        "title": "❤️ 𝐋ᴏᴠᴇ",
-        "title_cap": "Love",
-        "desc": "There’s a spark and magic between you both — a true love story is forming! 💞",
-        "folder": "VIPMUSIC/assets/flames/love",
-        "urls": [
-            ""
-        ]
-    },
-    "A": {
-        "title": "💖 𝐀ғғᴇᴄᴛɪᴏɴ",
-        "title_cap": "Affection",
-        "desc": "You both care deeply for each other — gentle hearts and pure emotion bloom! 🌸",
-        "folder": "VIPMUSIC/assets/flames/affection",
-        "urls": [
-            ""
-        ]
-    },
-    "M": {
-        "title": "💍 𝐌ᴀʀʀɪᴀɢᴇ",
-        "title_cap": "Marriage",
-        "desc": "Destiny has already written your names together — a wedding bell symphony awaits! 💫",
-        "folder": "VIPMUSIC/assets/flames/marriage",
-        "urls": [
-            ""
-        ]
-    },
-    "E": {
-        "title": "💔 𝐄ɴᴇᴍʏ",
-        "title_cap": "Enemy",
-        "desc": "Clashing energies and fiery tempers — maybe not meant to be this time 😅",
-        "folder": "VIPMUSIC/assets/flames/enemy",
-        "urls": [
-            ""
-        ]
-    },
-    "S": {
-        "title": "💜 𝐒ɪʙʟɪɴɢ𝘴",
-        "title_cap": "Siblings",
-        "desc": "You both share a sibling-like connection — teasing, caring, and protective 💫",
-        "folder": "VIPMUSIC/assets/flames/siblings",
-        "urls": [
-            ""
-        ]
-    },
+    "F": {"title": "💛 𝐅ʀɪᴇɴᴅ𝘴", "title_cap": "Friends", "desc": "A strong bond filled with laughter, trust, and memories. You two are perfect as friends forever! 🤝", "folder": "VIPMUSIC/assets/flames/friends", "urls": [""]},
+    "L": {"title": "❤️ 𝐋ᴏᴠᴇ", "title_cap": "Love", "desc": "There’s a spark and magic between you both — a true love story is forming! 💞", "folder": "VIPMUSIC/assets/flames/love", "urls": [""]},
+    "A": {"title": "💖 𝐀ғғᴇᴄᴛɪᴏɴ", "title_cap": "Affection", "desc": "You both care deeply for each other — gentle hearts and pure emotion bloom! 🌸", "folder": "VIPMUSIC/assets/flames/affection", "urls": [""]},
+    "M": {"title": "💍 𝐌ᴀʀʀɪᴀɢᴇ", "title_cap": "Marriage", "desc": "Destiny has already written your names together — a wedding bell symphony awaits! 💫", "folder": "VIPMUSIC/assets/flames/marriage", "urls": [""]},
+    "E": {"title": "💔 𝐄ɴᴇᴍʏ", "title_cap": "Enemy", "desc": "Clashing energies and fiery tempers — maybe not meant to be this time 😅", "folder": "VIPMUSIC/assets/flames/enemy", "urls": [""]},
+    "S": {"title": "💜 𝐒ɪʙʟɪɴɢ𝘴", "title_cap": "Siblings", "desc": "You both share a sibling-like connection — teasing, caring, and protective 💫", "folder": "VIPMUSIC/assets/flames/siblings", "urls": [""]},
 }
 
 
-# --- IMAGE PICKER (Local or URL) ---
+# --- IMAGE PICKER (Local + URL Fallback) ---
 async def get_random_image(result_letter):
     result = RESULTS[result_letter]
     folder = result["folder"]
-    urls = result["urls"]
+    urls = [u for u in result.get("urls", []) if u]
 
     local_files = []
     if os.path.isdir(folder):
-        local_files = [
-            os.path.join(folder, f)
-            for f in os.listdir(folder)
-            if f.lower().endswith((".jpg", ".jpeg", ".png"))
-        ]
+        local_files = [os.path.join(folder, f) for f in os.listdir(folder) if f.lower().endswith((".jpg", ".jpeg", ".png"))]
 
-    # randomly pick local or URL
-    if random.choice([True, False]) and local_files:
+    if not local_files and not urls:
+        raise ValueError(f"No images available for {result_letter}")
+
+    use_local = False
+    if local_files and urls:
+        use_local = random.choice([True, False])
+    elif local_files:
+        use_local = True
+
+    if use_local:
         choice = random.choice(local_files)
         print(f"[FLAMES] Selected local: {choice}")
         return Image.open(choice).convert("RGB")
 
-    else:
-        if not urls:
-            raise ValueError("No URLs available for this category.")
-        url = random.choice(urls)
-        print(f"[FLAMES] Selected URL: {url}")
+    url = random.choice(urls)
+    print(f"[FLAMES] Selected URL: {url}")
+    try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 if resp.status != 200:
-                    raise Exception(f"Failed to download image: {resp.status}")
+                    if local_files:
+                        return Image.open(random.choice(local_files)).convert("RGB")
+                    raise Exception(f"Failed to fetch URL ({resp.status})")
                 data = await resp.read()
         return Image.open(io.BytesIO(data)).convert("RGB")
+    except Exception:
+        if local_files:
+            return Image.open(random.choice(local_files)).convert("RGB")
+        raise
 
 
 # --- FLAMES RESULT LOGIC ---
@@ -120,69 +80,20 @@ def flames_result(name1, name2):
     return flames[0]
 
 
-# --- IMAGE PICKER (with fallback) ---
-async def get_random_image(result_letter):
-    result = RESULTS[result_letter]
-    folder = result["folder"]
-    local_files = []
-    if os.path.isdir(folder):
-        local_files = [
-            os.path.join(folder, f)
-            for f in os.listdir(folder)
-            if f.lower().endswith((".jpg", ".jpeg", ".png"))
-        ]
-
-    if not local_files:
-        raise ValueError(f"No local images found in {folder}")
-    choice = random.choice(local_files)
-    print(f"[FLAMES] Using {choice}")
-    return Image.open(choice).convert("RGB")
-
-
-  # --- CREATE POSTER ---
-def make_poster(bg, name1, name2, title_cap, percentage):
-    bg = bg.resize((900, 600)).filter(ImageFilter.GaussianBlur(4))
-    stat = ImageStat.Stat(bg)
-    brightness = sum(stat.mean[:3]) / 3
-    text_color = "white" if brightness < 130 else "black"
-
-    draw = ImageDraw.Draw(bg)
-    try:
-        font_title = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 60)
-        font_text = ImageFont.truetype("VIPMUSIC/assets/Rekalgera-Regular.otf", 45)
-        font_small = ImageFont.truetype("VIPMUSIC/assets/Sprintura Demo.otf", 35)
-        font_fancy = ImageFont.truetype("VIPMUSIC/assets/NotoSansMath-Regular.ttf", 35)
-    except Exception:
-        font_title = font_text = font_small = font_fancy = ImageFont.load_default()
-
-    def draw_centered(y, text, font):
-        w, h = draw.textsize(text, font=font)
-        x = (900 - w) / 2
-        draw.text((x, y), text, font=font, fill=text_color)
-
-    draw_centered(40, "F L A M E S", font_title)
-    draw_centered(170, f"{name1.title()} x {name2.title()}", font_text)
-    draw_centered(270, f"Result: {title_cap}", font_text)
-    draw_centered(360, f"Compatibility: {percentage}%", font_small)
-    draw_centered(530, "Made With x @HeartBeat_Fam", font_fancy)
-
-    output = io.BytesIO()
-    output.name = "flames_result.jpg"
-    bg.save(output, "JPEG")
-    output.seek(0)
-    return output
-
-
-# --- EMOJI BAR ---
-def emoji_bar(percent):
-    full = int(percent / 20)
-    return "✩" * full + "★" * (5 - full)
-
-# --- ADD DARK SHADOW EFFECT ---
+# --- DARK EFFECT ---
 def darken_image(image, opacity=0.6):
     overlay = Image.new("RGBA", image.size, (0, 0, 0, int(255 * opacity)))
     darkened = Image.alpha_composite(image.convert("RGBA"), overlay)
     return darkened.convert("RGB")
+
+
+# --- FANCY FONT ---
+def get_font(size):
+    font_path = "VIPMUSIC/assets/fonts/Lovely.otf"
+    if not os.path.exists(font_path):
+        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    return ImageFont.truetype(font_path, size)
+
 
 # --- DRAW RESULT ON IMAGE ---
 def draw_result(image, title, desc, percent):
@@ -194,7 +105,6 @@ def draw_result(image, title, desc, percent):
     font_desc = get_font(int(W * 0.045))
     font_percent = get_font(int(W * 0.06))
 
-    # Shadow text for readability
     def shadowed_text(x, y, text, font, fill="white"):
         shadow_color = "black"
         offsets = [(-2, -2), (2, -2), (-2, 2), (2, 2)]
@@ -202,15 +112,21 @@ def draw_result(image, title, desc, percent):
             draw.text((x + ox, y + oy), text, font=font, fill=shadow_color)
         draw.text((x, y), text, font=font, fill=fill)
 
-    title_w, title_h = draw.textsize(title, font=font_title)
-    percent_w, percent_h = draw.textsize(f"{percent}%", font=font_percent)
-    desc_w, desc_h = draw.textsize(desc, font=font_desc)
+    title_w, _ = draw.textsize(title, font=font_title)
+    percent_w, _ = draw.textsize(f"{percent}%", font=font_percent)
+    desc_w, _ = draw.textsize(desc, font=font_desc)
 
     shadowed_text((W - title_w) / 2, H * 0.25, title, font_title)
     shadowed_text((W - percent_w) / 2, H * 0.45, f"{percent}%", font_percent)
     shadowed_text((W - desc_w) / 2, H * 0.65, desc, font_desc)
-
     return image
+
+
+# --- EMOJI BAR ---
+def emoji_bar(percent):
+    full = int(percent / 20)
+    return "✩" * full + "★" * (5 - full)
+
 
 # --- /FLAMES COMMAND ---
 @app.on_message(filters.command("flames"))
@@ -226,6 +142,10 @@ async def flames_command(client, message):
         result = RESULTS[result_letter]
 
         bg = await get_random_image(result_letter)
+        bg = draw_result(bg, result["title"], result["desc"], random.randint(60, 100))
+        buffer = io.BytesIO()
+        bg.save(buffer, "JPEG")
+        buffer.seek(0)
 
         love = random.randint(60, 100) if result_letter in "LAM" else random.randint(10, 70)
         emotion = random.randint(60, 100)
@@ -233,28 +153,23 @@ async def flames_command(client, message):
         communication = random.randint(50, 100)
         trust = random.randint(60, 100)
 
-        poster = make_poster(bg, name1, name2, result["title_cap"], love)
-
         caption = (
             f"<blockquote>{result['title']}</blockquote>\n"
             f"<blockquote>💥 **{name1.title()} ❣️ {name2.title()}**\n"
-            f"💞 𝐂ᴏᴍᴘᴀᴛɪʙɪʟɪᴛʏ: **{love}%**\n{emoji_bar(love)}\n"
-            f"💓 𝐄ᴍᴏᴛɪᴏɴᴀʟ𝐁ᴏɴᴅ: **{emotion}%**\n{emoji_bar(emotion)}\n"
-            f"🤞🏻 𝐅ᴜɴ𝐋ᴇᴠᴇʟ: **{fun}%**\n{emoji_bar(fun)}\n"
-            f"✨ 𝐂ᴏᴍᴍᴜɴɪᴄᴀᴛɪᴏɴ: **{communication}%**\n{emoji_bar(communication)}\n"
-            f"💯 𝐓ʀᴜsᴛ: **{trust}%**\n{emoji_bar(trust)}</blockquote>\n"
+            f"💞 Compatibility: **{love}%**\n{emoji_bar(love)}\n"
+            f"💓 Emotional Bond: **{emotion}%**\n{emoji_bar(emotion)}\n"
+            f"🤞🏻 Fun Level: **{fun}%**\n{emoji_bar(fun)}\n"
+            f"✨ Communication: **{communication}%**\n{emoji_bar(communication)}\n"
+            f"💯 Trust: **{trust}%**\n{emoji_bar(trust)}</blockquote>\n"
             f"<blockquote>🔥 {result['desc']}</blockquote>"
         )
 
         buttons = InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry"),
-                InlineKeyboardButton("🔻 sʜᴀʀᴇ ʀᴇsᴜʟᴛ 🔻", switch_inline_query="flames love test"),
-            ],
+            [InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="flames_retry")],
             [InlineKeyboardButton("🔻 ᴠɪᴇᴡ ᴀʟʟ ʀᴇsᴜʟᴛs 🔻", callback_data="flames_list")]
         ])
 
-        await message.reply_photo(photo=poster, caption=caption, reply_markup=buttons)
+        await message.reply_photo(photo=buffer, caption=caption, reply_markup=buttons)
 
     except Exception as e:
         await message.reply_text(f"⚠️ Error: {e}")
@@ -269,48 +184,32 @@ async def match_command(client, message):
             return
 
         user = message.from_user
-        members = []
-        async for member in client.get_chat_members(message.chat.id):
-            if not member.user.is_bot and member.user.id != user.id:
-                members.append(member.user)
-            if len(members) >= 50:
-                break
+        members = [m.user async for m in client.get_chat_members(message.chat.id) if not m.user.is_bot and m.user.id != user.id]
 
         if len(members) < 3:
             await message.reply_text("⚠️ Not enough members in this group to match!", quote=True)
             return
 
         selected = random.sample(members, 3)
-        text = f"<blockquote>🎯 **𝐓ᴏᴘ 3 𝐌ᴀᴛᴄʜᴇs 𝐅ᴏʀ\n[{user.first_name}](tg://user?id={user.id})** 💘</blockquote>\n"
+        text = f"<blockquote>🎯 **𝐓ᴏᴘ 3 𝐌ᴀᴛᴄʜᴇs 𝐅ᴏʀ [{user.first_name}](tg://user?id={user.id}) 💘**</blockquote>\n"
 
         for idx, member in enumerate(selected, start=1):
-            name = member.first_name or "Unknown"
-            tag = f"[{name}](tg://user?id={member.id})"
+            tag = f"[{member.first_name}](tg://user?id={member.id})"
             result_letter = random.choice(list(RESULTS.keys()))
             result = RESULTS[result_letter]
             percent = random.randint(50, 100)
             alert = "💞 **Perfect Couple Alert!** 💞" if percent >= 85 and result_letter in ["L", "M"] else ""
-            text += (
-                f"<blockquote>{idx}. {tag} → {result['title']} ({percent}%)\n"
-                f"{emoji_bar(percent)}\n📝 {result['desc']}\n{alert}</blockquote>\n"
-            )
+            text += f"<blockquote>{idx}. {tag} → {result['title']} ({percent}%)\n{emoji_bar(percent)}\n📝 {result['desc']}\n{alert}</blockquote>\n"
 
         random_result = random.choice(list(RESULTS.keys()))
         bg = await get_random_image(random_result)
-
+        bg = draw_result(bg, RESULTS[random_result]["title"], RESULTS[random_result]["desc"], random.randint(60, 100))
         output = io.BytesIO()
         output.name = "match_result.jpg"
         bg.save(output, "JPEG")
         output.seek(0)
 
-        await message.reply_photo(
-            photo=output,
-            caption=text,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="match_retry")]
-            ])
-        )
-
+        await message.reply_photo(photo=output, caption=text, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔻 ᴛʀʏ ᴀɢᴀɪɴ 🔻", callback_data="match_retry")]]))
     except Exception as e:
         await message.reply_text(f"⚠️ Error: {e}")
 
@@ -323,13 +222,7 @@ async def callback_handler(client, cq):
             await cq.message.reply_text("✨ Type `/flames Name1 Name2` again to try another match!")
         elif cq.data == "flames_list":
             await cq.message.reply_text(
-                "📜 **FLAMES Meaning:**\n\n"
-                "💛 F - Friendship\n"
-                "❤️ L - Love\n"
-                "💖 A - Affection\n"
-                "💍 M - Marriage\n"
-                "💔 E - Enemy\n"
-                "💜 S - Sibling\n",
+                "📜 **FLAMES Meaning:**\n\n💛 F - Friendship\n❤️ L - Love\n💖 A - Affection\n💍 M - Marriage\n💔 E - Enemy\n💜 S - Sibling\n",
                 quote=True
             )
         elif cq.data == "match_retry":
