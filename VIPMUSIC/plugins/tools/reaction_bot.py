@@ -14,8 +14,8 @@ from VIPMUSIC.utils.database import mongodb, get_sudoers
 COLLECTION = mongodb["reaction_bot_chats"]
 
 # -------------------- CACHE --------------------
-reaction_enabled_chats: Set[int] = set()       # Chats where reactions are ON
-chat_used_reactions: Dict[int, Set[str]] = {}  # Emoji rotation per chat
+reaction_enabled_chats: Set[int] = set()
+chat_used_reactions: Dict[int, Set[str]] = {}
 
 # -------------------- VALID REACTIONS --------------------
 VALID_REACTIONS = {
@@ -39,23 +39,19 @@ async def load_reaction_chats():
 
 asyncio.get_event_loop().create_task(load_reaction_chats())
 
-# -------------------- HELPER FUNCTIONS --------------------
+# -------------------- HELPERS --------------------
 def next_emoji(chat_id: int) -> str:
-    """Return a random, non-repeating emoji per chat."""
     if chat_id not in chat_used_reactions:
         chat_used_reactions[chat_id] = set()
-
     used = chat_used_reactions[chat_id]
     if len(used) >= len(SAFE_REACTIONS):
         used.clear()
-
     remaining = [e for e in SAFE_REACTIONS if e not in used]
     emoji = random.choice(remaining)
     used.add(emoji)
     return emoji
 
 async def is_admin_or_sudo(client, message: Message) -> Tuple[bool, Optional[str]]:
-    """Check if the user is admin, owner or sudoer in the chat."""
     user_id = getattr(message.from_user, "id", None)
     chat_id = message.chat.id
     chat_type = getattr(message.chat, "type", "").lower()
@@ -65,7 +61,8 @@ async def is_admin_or_sudo(client, message: Message) -> Tuple[bool, Optional[str
 
     try:
         sudoers = await get_sudoers()
-    except Exception:
+    except Exception as e:
+        print(f"[ReactionBot] get_sudoers error: {e}")
         sudoers = set()
 
     if user_id == OWNER_ID or user_id in sudoers:
@@ -88,7 +85,8 @@ async def toggle_reaction(client, message: Message):
     chat_id = message.chat.id
     args = message.text.split(maxsplit=1)
 
-    # If no argument, show current status
+    print(f"[ReactionBot] /reaction called in chat_id={chat_id} with args={args}")
+
     if len(args) < 2:
         status = "✅ ON" if chat_id in reaction_enabled_chats else "❌ OFF"
         return await message.reply_text(
@@ -98,6 +96,7 @@ async def toggle_reaction(client, message: Message):
 
     action = args[1].strip().lower()
     ok, debug = await is_admin_or_sudo(client, message)
+    print(f"[ReactionBot] Admin check: ok={ok}, debug={debug}")
     if not ok:
         return await message.reply_text(
             f"⚠️ Only admins, owner, or sudo users can toggle reactions.\nDebug: {debug or 'unknown'}",
@@ -108,15 +107,19 @@ async def toggle_reaction(client, message: Message):
         try:
             await COLLECTION.update_one({"chat_id": chat_id}, {"$set": {"chat_id": chat_id}}, upsert=True)
             reaction_enabled_chats.add(chat_id)
+            print(f"[ReactionBot] Reaction enabled in chat {chat_id}")
             return await message.reply_text("❤️ Reaction Bot **enabled**!", quote=True)
         except Exception as e:
+            print(f"[ReactionBot] DB Error enabling: {e}")
             return await message.reply_text(f"❌ DB Error: {e}", quote=True)
     elif action == "off":
         try:
             await COLLECTION.delete_one({"chat_id": chat_id})
             reaction_enabled_chats.discard(chat_id)
+            print(f"[ReactionBot] Reaction disabled in chat {chat_id}")
             return await message.reply_text("💤 Reaction Bot **disabled**!", quote=True)
         except Exception as e:
+            print(f"[ReactionBot] DB Error disabling: {e}")
             return await message.reply_text(f"❌ DB Error: {e}", quote=True)
     else:
         return await message.reply_text("Usage: `/reaction on` or `/reaction off`", quote=True)
@@ -126,13 +129,11 @@ async def toggle_reaction(client, message: Message):
 async def auto_react(client, message: Message):
     if not REACTION_BOT:
         return
-
     chat_id = message.chat.id
     if chat_id not in reaction_enabled_chats:
         return
     if message.text and message.text.startswith("/"):
         return
-
     try:
         emoji = next_emoji(chat_id)
         await message.react(emoji)
