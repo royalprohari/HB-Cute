@@ -11,6 +11,9 @@ from VIPMUSIC.utils.database import get_sudoers
 from VIPMUSIC.utils.databases import reactiondb
 
 
+print("[ReactionBot] Plugin loaded — registering handlers...")
+
+
 # ---------------- VALID REACTIONS ----------------
 VALID_REACTIONS = {
     "❤️", "💖", "💘", "💞", "💓", "✨", "🔥", "💫",
@@ -47,22 +50,31 @@ async def is_admin_or_sudo(client, message: Message):
 
         sudoers = await get_sudoers()
         if user_id == OWNER_ID or user_id in sudoers:
+            print(f"[AdminCheck] User {user_id} is sudo/owner ✅")
             return True
 
         member = await client.get_chat_member(chat_id, user_id)
         if member.status in (ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR):
+            print(f"[AdminCheck] User {user_id} is admin ✅")
             return True
+
+        print(f"[AdminCheck] User {user_id} is NOT admin/sudo ❌")
     except Exception as e:
-        print(f"[is_admin_or_sudo] Error: {e}")
+        print(f"[AdminCheck] Error checking admin for chat {message.chat.id}: {e}")
         traceback.print_exc()
 
     return False
 
 
 # ---------------- /reactionon ----------------
-@app.on_message(filters.command("reactionon") & filters.group & ~BANNED_USERS)
+@app.on_message(filters.command(["reactionon"], prefixes=["/", "!", "."]) & filters.group)
 async def enable_reaction_cmd(client, message: Message):
+    print(f"[Command Trigger] /reactionon received in chat {message.chat.id} by {message.from_user.id if message.from_user else 'None'}")
     try:
+        if message.from_user is None:
+            print("[reactionon] from_user missing (maybe anonymous admin).")
+            return await message.reply_text("⚠️ Anonymous admin detected — switch to normal account to use this.")
+
         ok = await is_admin_or_sudo(client, message)
         if not ok:
             return await message.reply_text("⚠️ Only admins, sudo users, or owner can use this command.")
@@ -77,9 +89,14 @@ async def enable_reaction_cmd(client, message: Message):
 
 
 # ---------------- /reactionoff ----------------
-@app.on_message(filters.command("reactionoff") & filters.group & ~BANNED_USERS)
+@app.on_message(filters.command(["reactionoff"], prefixes=["/", "!", "."]) & filters.group)
 async def disable_reaction_cmd(client, message: Message):
+    print(f"[Command Trigger] /reactionoff received in chat {message.chat.id} by {message.from_user.id if message.from_user else 'None'}")
     try:
+        if message.from_user is None:
+            print("[reactionoff] from_user missing (maybe anonymous admin).")
+            return await message.reply_text("⚠️ Anonymous admin detected — switch to normal account to use this.")
+
         ok = await is_admin_or_sudo(client, message)
         if not ok:
             return await message.reply_text("⚠️ Only admins, sudo users, or owner can use this command.")
@@ -94,8 +111,9 @@ async def disable_reaction_cmd(client, message: Message):
 
 
 # ---------------- /reaction ----------------
-@app.on_message(filters.command("reaction") & filters.group & ~BANNED_USERS)
+@app.on_message(filters.command(["reaction"], prefixes=["/", "!", "."]) & filters.group)
 async def reaction_toggle_menu(client, message: Message):
+    print(f"[Command Trigger] /reaction menu received in chat {message.chat.id} by {message.from_user.id if message.from_user else 'None'}")
     try:
         ok = await is_admin_or_sudo(client, message)
         if not ok:
@@ -111,7 +129,7 @@ async def reaction_toggle_menu(client, message: Message):
             "🎭 **Reaction System Control**\n\nUse buttons below to enable or disable reactions.",
             reply_markup=InlineKeyboardMarkup(buttons)
         )
-        print(f"[reaction command] Menu shown in chat {message.chat.id}")
+        print(f"[reaction] Menu shown in chat {message.chat.id}")
     except Exception as e:
         print(f"[reaction] Error in chat {message.chat.id}: {e}")
         traceback.print_exc()
@@ -125,21 +143,23 @@ async def reaction_callback(client, callback_query):
         user = callback_query.from_user
         data = callback_query.data.split("_")
         action, chat_id = data[1], int(data[2])
+        print(f"[Callback] {action} triggered by {user.id} in chat {chat_id}")
 
         member = await client.get_chat_member(chat_id, user.id)
         sudoers = await get_sudoers()
 
         if not (user.id == OWNER_ID or user.id in sudoers or member.status in (ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR)):
+            print(f"[Callback] {user.id} unauthorized in chat {chat_id}")
             return await callback_query.answer("You’re not allowed to control reactions!", show_alert=True)
 
         if action == "enable":
             await reactiondb.reaction_on(chat_id)
             await callback_query.edit_message_text("✅ **Reactions Enabled** — Bot will now react to all messages.")
-            print(f"[callback] Chat {chat_id}: reactions enabled by {user.id}")
+            print(f"[Callback] Chat {chat_id}: reactions enabled by {user.id}")
         else:
             await reactiondb.reaction_off(chat_id)
             await callback_query.edit_message_text("🚫 **Reactions Disabled** — Bot will stop reacting to messages.")
-            print(f"[callback] Chat {chat_id}: reactions disabled by {user.id}")
+            print(f"[Callback] Chat {chat_id}: reactions disabled by {user.id}")
     except Exception as e:
         print(f"[reaction_callback] Error: {e}")
         traceback.print_exc()
@@ -149,12 +169,12 @@ async def reaction_callback(client, callback_query):
             pass
 
 
-# ---------------- AUTO REACTION ON MESSAGES ----------------
+# ---------------- AUTO REACTION ----------------
 @app.on_message(filters.group & ~BANNED_USERS)
 async def auto_react_messages(client, message: Message):
     try:
         if not REACTION_BOT:
-            return  # disabled globally in config.py
+            return
 
         if not message.text and not message.caption:
             return
@@ -177,3 +197,6 @@ async def auto_react_messages(client, message: Message):
             await message.react("❤️")
         except Exception:
             pass
+
+
+print("[ReactionBot] Handlers registered successfully ✅")
