@@ -1,17 +1,13 @@
 import asyncio
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from VIPMUSIC import app, REACTION_BOT
+from VIPMUSIC import app
+from config import REACTION_BOT, BANNED_USERS, OWNER_ID, START_REACTIONS
 from VIPMUSIC.utils.database import get_sudoers
 from VIPMUSIC.utils.database.reactiondb import get_reaction_status, set_reaction_status
-from VIPMUSIC.misc import SUDOERS
-from VIPMUSIC.utils.decorators import AdminRightsCheck
-from VIPMUSIC.utils.filters import command
-
-BANNED_USERS = filters.user([])
 
 # ------------------------------
-# 🔘 BUTTON LAYOUT
+# 🔘 BUTTONS
 # ------------------------------
 def reaction_buttons(chat_id: int):
     return InlineKeyboardMarkup(
@@ -24,26 +20,30 @@ def reaction_buttons(chat_id: int):
     )
 
 # ------------------------------
-# ⚙️ /reaction Command
+# ⚙️ /reaction command
 # ------------------------------
-@app.on_message(command("reaction") & ~BANNED_USERS)
-@AdminRightsCheck
+@app.on_message(filters.command("reaction") & ~BANNED_USERS)
 async def reaction_toggle(client, message):
     if message.chat.type not in ["group", "supergroup"]:
         return await message.reply_text("❌ This command can only be used in groups.")
 
-    sudoers = await get_sudoers()
-    if message.from_user.id not in sudoers and message.from_user.id not in SUDOERS:
+    try:
+        sudoers = await get_sudoers()
+    except Exception:
+        sudoers = []
+
+    user_id = message.from_user.id if message.from_user else 0
+    if user_id != OWNER_ID and user_id not in sudoers:
         return await message.reply_text("🚫 Only admins or sudo users can manage reactions.")
 
     chat_id = message.chat.id
     current_status = await get_reaction_status(chat_id)
 
-    # no args → show status menu
+    # No arguments → show buttons
     if len(message.command) == 1:
         status_text = "🟢 Enabled" if current_status else "🔴 Disabled"
         return await message.reply_text(
-            f"**Reaction Bot is currently {status_text} in this chat.**\n\nUse buttons below to toggle:",
+            f"**Reaction Bot is currently {status_text} for this chat.**\n\nUse the buttons below to toggle:",
             reply_markup=reaction_buttons(chat_id),
         )
 
@@ -58,7 +58,7 @@ async def reaction_toggle(client, message):
         return await message.reply_text("Usage:\n`/reaction on` or `/reaction off`")
 
 # ------------------------------
-# 🔘 CALLBACK BUTTONS
+# 🔘 BUTTON CALLBACKS
 # ------------------------------
 @app.on_callback_query(filters.regex(r"^reactionon_(\d+)$"))
 async def cb_enable_reaction(client, query):
@@ -84,7 +84,7 @@ async def cb_disable_reaction(client, query):
 @app.on_message(filters.all & ~BANNED_USERS)
 async def auto_reactor(client, message):
     if not REACTION_BOT:
-        return  # globally disabled in config
+        return  # globally off
 
     if message.chat.type not in ["group", "supergroup", "private"]:
         return
@@ -94,10 +94,9 @@ async def auto_reactor(client, message):
     if not status:
         return
 
-    if message.from_user and message.from_user.is_self:
+    if not message.from_user or message.from_user.is_self:
         return
 
-    # Import emoji cycler from your reaction.py
     try:
         from VIPMUSIC.plugins.tools.reaction import next_emoji
         emoji = next_emoji(chat_id)
