@@ -4,13 +4,14 @@ import config
 
 SUDOERS = list(map(int, config.SUDOERS))
 
-group_filter = filters.group | filters.supergroup
+# Only filters.group works for old Pyrogram versions
+group_filter = filters.group
 
 def is_authorized(_, __, message):
     user = message.from_user
     if not user:
         return False
-    return user.id in SUDOERS or user.id == config.OWNER_ID or message.from_user.is_chat_admin
+    return user.id in SUDOERS or user.id == config.OWNER_ID or getattr(user, "is_chat_admin", False)
 
 @app.on_message(filters.command("zzztest") & group_filter & filters.create(is_authorized))
 async def zzz_test(_, message):
