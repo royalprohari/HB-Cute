@@ -7,6 +7,7 @@ from VIPMUSIC.utils.decorators import language
 from VIPMUSIC.utils.inline.settings import playmode_users_markup
 from config import BANNED_USERS
 
+print("[playmode] playmode & mode")
 
 @app.on_message(filters.command(["playmode" , "mode" ] ,prefixes=["/", "!", "%", ",", "", ".", "@", "#"]) & filters.group & ~BANNED_USERS)
 @language
