@@ -12,6 +12,8 @@ from VIPMUSIC.utils.database import get_assistant
 from telegraph import Telegraph  # Import Telegraph library
 import os
 
+print("[chat_history] botchat")
+
 last_checked_time = None
 
 @app.on_message(filters.command("botchat") & filters.user(int(OWNER)))
