@@ -31,6 +31,7 @@ from VIPMUSIC.utils.stickerset import (
     get_sticker_set_by_name,
 )
 
+print("[kangsticker] kang")
 # -----------
 
 MAX_STICKERS = (
