@@ -34,7 +34,7 @@ from config import BANNED_USERS, lyrical
 from time import time
 from VIPMUSIC.utils.extraction import extract_user
 
-print("[play] play, vplay, cplay", cvplay, playforce, cvplayforce)
+print("[play] play, vplay, cplay, cvplay, playforce, cvplayforce")
 
 # Define a dictionary to track the last message timestamp for each user
 user_last_message_time = {}
@@ -1161,6 +1161,7 @@ async def get_thumb(vidid):
     except Exception as e:
         return config.YOUTUBE_IMG_URL
     
+
 
 
 
