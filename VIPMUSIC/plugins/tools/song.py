@@ -19,7 +19,7 @@ from time import time
 import asyncio
 from VIPMUSIC.utils.extraction import extract_user
 
-print("[song] song, ig, reel")
+print("[song] song, insta, reel")
 
 # Define a dictionary to track the last message timestamp for each user
 user_last_message_time = {}
