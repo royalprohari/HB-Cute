@@ -4,7 +4,7 @@ from VIPMUSIC.plugins.tools.pretenderdb import impo_off, impo_on, check_pretende
 from VIPMUSIC import app
 
 
-
+print("[imposter] imposter")
 
 @app.on_message(filters.group & ~filters.bot & ~filters.via_bot, group=69)
 async def chk_usr(_, message: Message):
