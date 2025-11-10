@@ -7,6 +7,8 @@ from time import time
 import asyncio
 from VIPMUSIC.utils.extraction import extract_user
 
+print("[quote] quote")
+
 # Define a dictionary to track the last message timestamp for each user
 user_last_message_time = {}
 user_command_count = {}
@@ -258,7 +260,7 @@ def isArgInt(txt) -> list:
         return [False, 0]
 
 
-@app.on_message(filters.command(["q", "r"]) & filters.reply)
+@app.on_message(filters.command(["quote", "r"]) & filters.reply)
 async def msg_quotly_cmd(self: app, ctx: Message):
     user_id = message.from_user.id
     current_time = time()
