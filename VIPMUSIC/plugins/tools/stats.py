@@ -18,6 +18,7 @@ from VIPMUSIC.utils.decorators.language import language, languageCB
 from VIPMUSIC.utils.inline.stats import back_stats_buttons, stats_buttons
 from config import BANNED_USERS
 
+print("[stats] stats")
 
 @app.on_message(filters.command(["stats", "gstats"]) & ~BANNED_USERS)
 @language
