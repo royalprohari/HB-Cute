@@ -8,6 +8,7 @@ from VIPMUSIC.utils.decorators import AdminRightsCheck
 from VIPMUSIC.utils.inline import close_markup
 from config import BANNED_USERS
 
+print("[resume] resume, cresume")
 
 @app.on_message(filters.command(["resume", "cresume"]) & filters.group & ~BANNED_USERS)
 @AdminRightsCheck
