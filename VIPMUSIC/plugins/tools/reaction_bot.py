@@ -1,95 +1,96 @@
+# VIPMUSIC/plugins/tools/reaction_bot.py
+from pyrogram import filters
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from VIPMUSIC import app
-from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from VIPMUSIC.misc import SUDOERS
 from VIPMUSIC.utils.databases.reactiondb import is_reaction_on, reaction_on, reaction_off
-import json
-from config import START_REACTIONS, OWNER_ID
+from config import START_REACTIONS
+import random
 
 print("[ReactionBot] Plugin loaded!")
 
-# ------------------------------
-# Command: /reactionon
-# ------------------------------
-@app.on_message(filters.command("reactionon") & (filters.group) & SUDOERS)
-async def reaction_on_command(client: Client, message: Message):
+# -------------------------------
+# COMMANDS FOR OWNER / SUDO / ADMIN
+# -------------------------------
+
+# /reactionon command - Enable auto-reactions
+@app.on_message(filters.command("reactionon", prefixes=["/", ".", "!", "#"]) & 
+                (filters.user(SUDOERS) | filters.me | filters.group))
+async def enable_reaction_cmd(client, message: Message):
     chat_id = message.chat.id
+    # Only allow Owner / Sudo / Admin
+    member = await client.get_chat_member(chat_id, message.from_user.id)
+    if not (message.from_user.id in SUDOERS or member.status in ["administrator", "creator"]):
+        return await message.reply_text("❌ You are not allowed to do this!")
+
     await reaction_on(chat_id)
-    await message.reply_text(
-        "✅ Reaction has been turned ON for this chat.",
-    )
-    print(f"[ReactionBot] Reaction ON triggered in chat {chat_id}")
+    await message.reply_text("✅ Reactions are now ENABLED in this chat.")
 
-
-# ------------------------------
-# Command: /reactionoff
-# ------------------------------
-@app.on_message(filters.command("reactionoff") & (filters.group) & SUDOERS)
-async def reaction_off_command(client: Client, message: Message):
+# /reactionoff command - Disable auto-reactions
+@app.on_message(filters.command("reactionoff", prefixes=["/", ".", "!", "#"]) &
+                (filters.user(SUDOERS) | filters.me | filters.group))
+async def disable_reaction_cmd(client, message: Message):
     chat_id = message.chat.id
+    member = await client.get_chat_member(chat_id, message.from_user.id)
+    if not (message.from_user.id in SUDOERS or member.status in ["administrator", "creator"]):
+        return await message.reply_text("❌ You are not allowed to do this!")
+
     await reaction_off(chat_id)
-    await message.reply_text(
-        "❌ Reaction has been turned OFF for this chat.",
-    )
-    print(f"[ReactionBot] Reaction OFF triggered in chat {chat_id}")
+    await message.reply_text("❌ Reactions are now DISABLED in this chat.")
 
-
-# ------------------------------
-# Command: /reaction (show buttons)
-# ------------------------------
-@app.on_message(filters.command("reaction") & (filters.group) & SUDOERS)
-async def reaction_button_command(client: Client, message: Message):
+# /reaction command - show enable/disable buttons
+@app.on_message(filters.command("reaction", prefixes=["/", ".", "!", "#"]) &
+                (filters.user(SUDOERS) | filters.me | filters.group))
+async def reaction_buttons_cmd(client, message: Message):
     chat_id = message.chat.id
-    on_off_status = await is_reaction_on(chat_id)
-    status_text = "✅ ENABLED" if on_off_status else "❌ DISABLED"
+    status = "ENABLED" if await is_reaction_on(chat_id) else "DISABLED"
 
-    keyboard = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("Enable ✅", callback_data=f"reaction_enable:{chat_id}"),
-                InlineKeyboardButton("Disable ❌", callback_data=f"reaction_disable:{chat_id}"),
-            ]
-        ]
-    )
-
+    keyboard = [
+        [InlineKeyboardButton("✅ Enable", callback_data=f"reaction_enable"),
+         InlineKeyboardButton("❌ Disable", callback_data=f"reaction_disable")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     await message.reply_text(
-        f"Reaction is currently: {status_text}",
-        reply_markup=keyboard,
+        f"💫 Reaction status in this chat: {status}",
+        reply_markup=reply_markup
     )
 
+# -------------------------------
+# CALLBACK QUERY HANDLERS
+# -------------------------------
 
-# ------------------------------
-# Callback handler for buttons
-# ------------------------------
-@app.on_callback_query(filters.regex(r"reaction_(enable|disable):"))
-async def reaction_button_callback(client: Client, callback_query):
-    data = callback_query.data
-    action, chat_id_str = data.split(":")
-    chat_id = int(chat_id_str)
+@app.on_callback_query(filters.regex("^reaction_enable$"))
+async def callback_enable_reaction(client, callback: CallbackQuery):
+    chat_id = callback.message.chat.id
+    member = await client.get_chat_member(chat_id, callback.from_user.id)
+    if not (callback.from_user.id in SUDOERS or member.status in ["administrator", "creator"]):
+        return await callback.answer("❌ You are not allowed!", show_alert=True)
 
-    if action == "enable":
-        await reaction_on(chat_id)
-        await callback_query.answer("✅ Reaction enabled")
-        await callback_query.message.edit(f"Reaction is currently: ✅ ENABLED")
-        print(f"[ReactionBot] Reaction ENABLED via button in chat {chat_id}")
-    else:
-        await reaction_off(chat_id)
-        await callback_query.answer("❌ Reaction disabled")
-        await callback_query.message.edit(f"Reaction is currently: ❌ DISABLED")
-        print(f"[ReactionBot] Reaction DISABLED via button in chat {chat_id}")
+    await reaction_on(chat_id)
+    await callback.answer("✅ Reactions ENABLED")
+    await callback.message.edit_text("💫 Reaction status: ENABLED")
 
+@app.on_callback_query(filters.regex("^reaction_disable$"))
+async def callback_disable_reaction(client, callback: CallbackQuery):
+    chat_id = callback.message.chat.id
+    member = await client.get_chat_member(chat_id, callback.from_user.id)
+    if not (callback.from_user.id in SUDOERS or member.status in ["administrator", "creator"]):
+        return await callback.answer("❌ You are not allowed!", show_alert=True)
 
-# ------------------------------
-# Auto-reaction handler (example)
-# ------------------------------
-@app.on_message((filters.text | filters.caption) & filters.group)
-async def auto_react_messages(client: Client, message: Message):
+    await reaction_off(chat_id)
+    await callback.answer("❌ Reactions DISABLED")
+    await callback.message.edit_text("💫 Reaction status: DISABLED")
+
+# -------------------------------
+# AUTO-REACTION HANDLER
+# -------------------------------
+
+@app.on_message(filters.group)
+async def auto_react_messages(client, message: Message):
     chat_id = message.chat.id
     if await is_reaction_on(chat_id):
-        from config import START_REACTIONS
-        import random
         try:
             emoji = random.choice(START_REACTIONS)
             await message.reply_text(emoji)
-        except Exception as e:
-            print(f"[ReactionBot] Failed to react in chat {chat_id}: {e}")
+        except:
+            pass  # Avoid bot crash if cannot send message
