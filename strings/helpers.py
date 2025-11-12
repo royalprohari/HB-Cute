@@ -69,16 +69,7 @@ HELP_6 = """<blockquote>**📌 ᴘɪɴꜱ**</blockquote>
 <blockquote>⋆｡°✩ **𝐇ʙ-𝐅ᴀᴍ** ✩°｡⋆  
 [ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴏғғɪ](https://t.me/HeartBeat_Offi) | [ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴄʜᴧᴛ](https://t.me/HeartBeat_Fam)</blockquote>"""
 
-HELP_7 = """<blockquote>**⬇️ ᴅᴏᴡɴʟᴏᴀᴅꜱ:**</blockquote>
-<blockquote>🔻 /lyrics <ꜱᴏɴɢ> ➠ ꜱᴇᴀʀᴄʜ ʟʏʀɪᴄꜱ  
-🔻 /song <ɴᴀᴍᴇ/ᴜʀʟ> ➠ ᴅᴏᴡɴʟᴏᴀᴅ ꜱᴏɴɢ  
-🔻 /reel ➠ ᴅᴏᴡɴʟᴏᴀᴅ ʀᴇᴇʟꜱ  
-🔻 /shorts ➠ ᴅᴏᴡɴʟᴏᴀᴅ ꜱʜᴏʀᴛꜱ  
-🔻 /yt ➠ ᴅᴏᴡɴʟᴏᴀᴅ ʏᴏᴜᴛᴜʙᴇ ᴠɪᴅᴇᴏꜱ</blockquote>
-<blockquote>⋆｡°✩ **𝐇ʙ-𝐅ᴀᴍ** ✩°｡⋆  
-[ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴏғғɪ](https://t.me/HeartBeat_Offi) | [ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴄʜᴧᴛ](https://t.me/HeartBeat_Fam)</blockquote>"""
-
-HELP_8 = """<blockquote>**🥵 ꜰᴇᴅᴇʀᴀᴛɪᴏɴꜱ:**
+HELP_7 = """<blockquote>**🥵 ꜰᴇᴅᴇʀᴀᴛɪᴏɴꜱ:**
 🔻 /newfed <ɴᴀᴍᴇ> - ᴄʀᴇᴀᴛᴇ ᴀ ꜰᴇᴅᴇʀᴀᴛɪᴏɴ (ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀᴛ ᴏɴʟʏ)
 🔻 /delfed <ꜰᴇᴅ_ɪᴅ> - ᴅᴇʟᴇᴛᴇ ᴀ ꜰᴇᴅᴇʀᴀᴛɪᴏɴ (ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀᴛ ᴏɴʟʏ)
 🔻 /joinfed <ꜰᴇᴅ_ɪᴅ> - ᴊᴏɪɴ ᴛʜɪꜱ ɢʀᴏᴜᴘ ᴛᴏ ᴀ ꜰᴇᴅᴇʀᴀᴛɪᴏɴ (ɢʀᴏᴜᴘ ᴏᴡɴᴇʀ ᴏɴʟʏ)
@@ -92,6 +83,15 @@ HELP_8 = """<blockquote>**🥵 ꜰᴇᴅᴇʀᴀᴛɪᴏɴꜱ:**
 🔻 /fban <ᴜꜱᴇʀ> <ʀᴇᴀꜱᴏɴ> - ꜰᴇᴅᴇʀᴀᴛɪᴏɴᴀʟ ʙᴀɴ
 🔻 /unfban <ᴜꜱᴇʀ> <ʀᴇᴀꜱᴏɴ> - ꜰᴇᴅᴇʀᴀᴛɪᴏɴᴀʟ ᴜɴʙᴀɴ
 🔻 /fbroadcast (ʀᴇᴘʟʏ ᴛᴏ ᴍᴇꜱꜱᴀɢᴇ) - ʙʀᴏᴀᴅᴄᴀꜱᴛ ᴍᴇꜱꜱᴀɢᴇ ᴛᴏ ᴀʟʟ ꜰᴇᴅ ᴄʜᴀᴛꜱ</blockquote>
+<blockquote>⋆｡°✩ **𝐇ʙ-𝐅ᴀᴍ** ✩°｡⋆  
+[ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴏғғɪ](https://t.me/HeartBeat_Offi) | [ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴄʜᴧᴛ](https://t.me/HeartBeat_Fam)</blockquote>"""
+
+HELP_8 = """<blockquote>**⬇️ ᴅᴏᴡɴʟᴏᴀᴅꜱ:**</blockquote>
+<blockquote>🔻 /lyrics <ꜱᴏɴɢ> ➠ ꜱᴇᴀʀᴄʜ ʟʏʀɪᴄꜱ  
+🔻 /song <ɴᴀᴍᴇ/ᴜʀʟ> ➠ ᴅᴏᴡɴʟᴏᴀᴅ ꜱᴏɴɢ  
+🔻 /reel ➠ ᴅᴏᴡɴʟᴏᴀᴅ ʀᴇᴇʟꜱ  
+🔻 /shorts ➠ ᴅᴏᴡɴʟᴏᴀᴅ ꜱʜᴏʀᴛꜱ  
+🔻 /yt ➠ ᴅᴏᴡɴʟᴏᴀᴅ ʏᴏᴜᴛᴜʙᴇ ᴠɪᴅᴇᴏꜱ</blockquote>
 <blockquote>⋆｡°✩ **𝐇ʙ-𝐅ᴀᴍ** ✩°｡⋆  
 [ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴏғғɪ](https://t.me/HeartBeat_Offi) | [ʜᴇᴧꝛᴛʙᴇᴧᴛ ᴄʜᴧᴛ](https://t.me/HeartBeat_Fam)</blockquote>"""
 
