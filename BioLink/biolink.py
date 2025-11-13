@@ -6,13 +6,12 @@ from helper.utils import (
     increment_warning, reset_warnings,
     is_whitelisted, add_whitelist, remove_whitelist, get_whitelist
 )
-from config import (
-    API_ID,
-    API_HASH,
-    BOT_TOKEN,
-    URL_PATTERN
-)
+from config import API_ID, API_HASH, BOT_TOKEN, URL_PATTERN
 
+# =================== MEMORY CONFIG ===================
+BIO_TOGGLE = {}  # {chat_id: True/False} — stores BioLink protection status per group
+
+# =================== BOT INIT ===================
 app = Client(
     "BioLinkRobot",
     api_id=API_ID,
@@ -20,180 +19,89 @@ app = Client(
     bot_token=BOT_TOKEN,
 )
 
-# =================== Memory store for /biolink toggle ===================
-BIO_LINK_STATUS = {}  # True = ON, False = OFF
-
-
-# =================== /biolink (Enable / Disable protection) ===================
+# =================== /BIOLINK TOGGLE ===================
 @app.on_message(filters.group & filters.command("biolink"))
-async def biolink_toggle(client: Client, message):
+async def toggle_biolink(client: Client, message):
     chat_id = message.chat.id
     user_id = message.from_user.id
 
     if not await is_admin(client, chat_id, user_id):
-        return await message.reply_text("❌ 𝐎иƖу 𝐀ᴅмιи Ƈαи ʋƨɛ 𝐓нιƨ Ƈσммαиᴅ.")
+        return await message.reply_text("❌ ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴛᴏɢɢʟᴇ ʙɪᴏʟɪɴᴋ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ.")
 
-    status = BIO_LINK_STATUS.get(chat_id, True)
-    state_text = "🟢 𝐄иαвƖɛᴅ" if status else "🔴 𝐃ιƨαвƖɛᴅ"
-    text = f"**🧠 𝐁ɪσ-𝐋ɪɴᴋ 𝐏ʀᴏᴛᴇᴄᴛɪᴏɴ:** {state_text}\n\n**Ƈнσσƨɛ 𝐎ρтɪσи ƁɛƖσш:**"
+    current = BIO_TOGGLE.get(chat_id, False)
+    new_status = not current
+    BIO_TOGGLE[chat_id] = new_status
 
-    keyboard = InlineKeyboardMarkup([
+    status_text = "✅ **ᴇɴᴀʙʟᴇᴅ**" if new_status else "🚫 **ᴅɪꜱᴀʙʟᴇᴅ**"
+    kb = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ 𝐄иαвƖɛ", callback_data=f"biolink_enable_{chat_id}"),
-            InlineKeyboardButton("🚫 𝐃ιƨαвƖɛ", callback_data=f"biolink_disable_{chat_id}")
+            InlineKeyboardButton("✅ ᴇɴᴀʙʟᴇ", callback_data=f"bio_on_{chat_id}"),
+            InlineKeyboardButton("🚫 ᴅɪꜱᴀʙʟᴇ", callback_data=f"bio_off_{chat_id}")
         ]
     ])
-    await message.reply_text(text, reply_markup=keyboard)
+    await message.reply_text(f"**ʙɪᴏʟɪɴᴋ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ ɪꜱ ɴᴏᴡ {status_text}**", reply_markup=kb)
 
-
-# =================== Config Command ===================
-@app.on_message(filters.group & filters.command("config"))
-async def configure(client: Client, message):
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    if not await is_admin(client, chat_id, user_id):
-        return
-
-    mode, limit, penalty = await get_config(chat_id)
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔻 𝐖αяи 🔻", callback_data="warn")],
-        [
-            InlineKeyboardButton("🔻 𝐌ʋтɛ ✅" if penalty == "mute" else "Mute", callback_data="mute"),
-            InlineKeyboardButton("🔻 𝐁αи ✅" if penalty == "ban" else "Ban", callback_data="ban")
-        ],
-        [InlineKeyboardButton("🔻 𝐂Ɩσƨɛ 🔻", callback_data="close")]
-    ])
-    await client.send_message(
-        chat_id,
-        "**𝐒ɛƭ 𝐏ʋиιƨнмɛит ƒσя 𝐁ισ-𝐋ιиκ 𝐃ɛтɛᴄтɪσи:**",
-        reply_markup=keyboard
-    )
-    await message.delete()
-
-
-# =================== Whitelist Commands ===================
-@app.on_message(filters.group & filters.command("free"))
-async def command_free(client: Client, message):
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    if not await is_admin(client, chat_id, user_id):
-        return
-
-    if message.reply_to_message:
-        target = message.reply_to_message.from_user
-    elif len(message.command) > 1:
-        arg = message.command[1]
-        target = await client.get_users(int(arg) if arg.isdigit() else arg)
-    else:
-        return await message.reply_text("**ʀɛρƖʏ σя ʋƨɛ /free [υѕɛя/ɪᴅ] тσ ᴀᴅᴅ ᴛσ ᴡʜɪᴛᴇʟɪꜱᴛ.**")
-
-    await add_whitelist(chat_id, target.id)
-    await reset_warnings(chat_id, target.id)
-
-    text = f"✅ **{target.mention} 𝐀ᴅᴅɛᴅ 𝐓σ 𝐖нιтɛƖιƨт.**"
-    keyboard = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("🚫 𝐔и𝐖нιтɛƖιƨт", callback_data=f"unwhitelist_{target.id}"),
-            InlineKeyboardButton("🗑️ 𝐂Ɩσƨɛ", callback_data="close")
-        ]
-    ])
-    await message.reply_text(text, reply_markup=keyboard)
-
-
-@app.on_message(filters.group & filters.command("unfree"))
-async def command_unfree(client: Client, message):
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    if not await is_admin(client, chat_id, user_id):
-        return
-
-    if message.reply_to_message:
-        target = message.reply_to_message.from_user
-    elif len(message.command) > 1:
-        arg = message.command[1]
-        target = await client.get_users(int(arg) if arg.isdigit() else arg)
-    else:
-        return await message.reply_text("**ʀɛρƖʏ σя ʋƨɛ /unfree [υѕɛя/ɪᴅ] тσ ʀᴇᴍᴏᴠᴇ ғʀᴏᴍ ᴡʜɪᴛᴇʟɪꜱᴛ.**")
-
-    if await is_whitelisted(chat_id, target.id):
-        await remove_whitelist(chat_id, target.id)
-        text = f"🚫 **{target.mention} 𝐑ɛмσᴠɛᴅ 𝐅яσм 𝐖нιтɛƖιƨт.**"
-    else:
-        text = f"ℹ️ **{target.mention} 𝐈ƨ 𝐍σт 𝐖нιтɛƖιƨт.**"
-
-    keyboard = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("✅ 𝐖нιтɛƖιƨт", callback_data=f"whitelist_{target.id}"),
-            InlineKeyboardButton("🗑️ 𝐂Ɩσƨɛ", callback_data="close")
-        ]
-    ])
-    await message.reply_text(text, reply_markup=keyboard)
-
-
-@app.on_message(filters.group & filters.command("freelist"))
-async def command_freelist(client: Client, message):
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    if not await is_admin(client, chat_id, user_id):
-        return
-
-    ids = await get_whitelist(chat_id)
-    if not ids:
-        return await message.reply_text("⚠️ **𝐍σ 𝐔ƨɛя 𝐈ƨ 𝐖нιтɛƖιƨтɛᴅ.**")
-
-    text = "**📋 𝐖нιтɛƖιƨтɛᴅ 𝐔ƨɛяƨ:**\n\n"
-    for i, uid in enumerate(ids, start=1):
-        try:
-            user = await client.get_users(uid)
-            text += f"{i}. {user.first_name} [`{uid}`]\n"
-        except:
-            text += f"{i}. [User Not Found] [`{uid}`]\n"
-
-    keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🗑️ 𝐂Ɩσƨɛ", callback_data="close")]])
-    await message.reply_text(text, reply_markup=keyboard)
-
-
-# =================== Callback Handler ===================
+# =================== CALLBACKS ===================
 @app.on_callback_query()
-async def callback_handler(client: Client, cq):
-    data = cq.data
-    chat_id = cq.message.chat.id
-    user_id = cq.from_user.id
+async def callback_handler(client: Client, callback_query):
+    data = callback_query.data
+    chat_id = callback_query.message.chat.id
+    user_id = callback_query.from_user.id
 
+    # ========== Handle /biolink toggle ==========
+    if data.startswith("bio_on_") or data.startswith("bio_off_"):
+        if not await is_admin(client, chat_id, user_id):
+            return await callback_query.answer("❌ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ.", show_alert=True)
+
+        chat_id = int(data.split("_")[2])
+        BIO_TOGGLE[chat_id] = data.startswith("bio_on_")
+        status_text = "✅ **ᴇɴᴀʙʟᴇᴅ**" if BIO_TOGGLE[chat_id] else "🚫 **ᴅɪꜱᴀʙʟᴇᴅ**"
+        await callback_query.message.edit_text(f"**ʙɪᴏʟɪɴᴋ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ ɪꜱ ɴᴏᴡ {status_text}**")
+        return await callback_query.answer()
+
+    # ========== Other callback handling ==========
     if not await is_admin(client, chat_id, user_id):
-        return await cq.answer("❌ 𝐘συ 𝐀яɛ 𝐍σт 𝐀и 𝐀ᴅмιи.", show_alert=True)
-
-    # ====== BioLink Enable/Disable ======
-    if data.startswith("biolink_enable_") or data.startswith("biolink_disable_"):
-        gid = int(data.split("_")[-1])
-        if data.startswith("biolink_enable_"):
-            BIO_LINK_STATUS[gid] = True
-            status = "🟢 𝐁ɪσ-𝐋ɪɴᴋ 𝐏ʀᴏᴛᴇᴄᴛɪᴏɴ 𝐄иαвƖɛᴅ"
-        else:
-            BIO_LINK_STATUS[gid] = False
-            status = "🔴 𝐁ɪσ-𝐋ɪɴᴋ 𝐏ʀᴏᴛᴇᴄᴛɪᴏɴ 𝐃ιƨαвƖɛᴅ"
-
-        kb = InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("✅ 𝐄иαвƖɛ", callback_data=f"biolink_enable_{gid}"),
-                InlineKeyboardButton("🚫 𝐃ιƨαвƖɛ", callback_data=f"biolink_disable_{gid}")
-            ]
-        ])
-        await cq.message.edit_text(f"**{status}**", reply_markup=kb)
-        return await cq.answer()
+        return await callback_query.answer("❌ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ.", show_alert=True)
 
     if data == "close":
-        return await cq.message.delete()
+        return await callback_query.message.delete()
 
+    # --- Warn limit selector ---
+    if data == "warn":
+        _, selected_limit, _ = await get_config(chat_id)
+        kb = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(f"🍏" if selected_limit == i else f"{i}", callback_data=f"warn_{i}")
+                for i in range(6)
+            ],
+            [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="back"),
+             InlineKeyboardButton("🗑️ ᴄʟᴏꜱᴇ", callback_data="close")]
+        ])
+        return await callback_query.message.edit_text("**ꜱᴇᴛ ɴᴜᴍʙᴇʀ ᴏꜰ ᴡᴀʀɴɪɴɢꜱ:**", reply_markup=kb)
 
-# =================== BioLink Detection ===================
+    # --- Handle warn_x updates ---
+    if data.startswith("warn_"):
+        count = int(data.split("_")[1])
+        await update_config(chat_id, limit=count)
+        kb = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(f"🍏" if count == i else f"{i}", callback_data=f"warn_{i}")
+                for i in range(6)
+            ],
+            [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="back"),
+             InlineKeyboardButton("🗑️ ᴄʟᴏꜱᴇ", callback_data="close")]
+        ])
+        await callback_query.message.edit_text(f"**ᴡᴀʀɴɪɴɢ ʟɪᴍɪᴛ ꜱᴇᴛ ᴛᴏ {count}**", reply_markup=kb)
+        return await callback_query.answer()
+
+# =================== MAIN BIO CHECK ===================
 @app.on_message(filters.group)
 async def check_bio(client: Client, message):
     chat_id = message.chat.id
     user_id = message.from_user.id
 
-    # Skip detection if disabled
-    if not BIO_LINK_STATUS.get(chat_id, True):
+    # Skip if biolink detection is disabled
+    if not BIO_TOGGLE.get(chat_id, False):
         return
 
     if await is_admin(client, chat_id, user_id) or await is_whitelisted(chat_id, user_id):
@@ -208,44 +116,43 @@ async def check_bio(client: Client, message):
         try:
             await message.delete()
         except errors.MessageDeleteForbidden:
-            return await message.reply_text("❌ 𝐑ɛмσᴠɛ 𝐘σʋя 𝐁ɪσ-𝐋ɪɴᴋ.")
+            return await message.reply_text("ʀᴇᴍᴏᴠᴇ ʏᴏᴜʀ ʙɪᴏ ʟɪɴᴋ.")
 
         mode, limit, penalty = await get_config(chat_id)
         count = await increment_warning(chat_id, user_id)
-
         warning_text = (
-            f"🚨 **𝐖αяиɪиɢ** 🚨\n\n"
-            f"👤 **𝐔ƨɛя:** {mention}\n"
-            f"❌ **𝐑ɛαƨσи:** 𝐋ɪиᴋ ƒσʋиᴅ ɪи ʙɪσ\n"
-            f"⚠️ **𝐖αяиɪиɢ:** {count}/{limit}\n\n"
-            "**𝐑ɛмσᴠɛ 𝐋ɪиᴋ 𝐅яσм 𝐘σʋя 𝐁ɪσ!**"
+            f"🚨 **ᴡᴀʀɴɪɴɢ** 🚨\n\n"
+            f"👤 **ᴜꜱᴇʀ:** {mention} `[{user_id}]`\n"
+            f"❌ **ʀᴇᴀꜱᴏɴ:** ʙɪᴏ ᴄᴏɴᴛᴀɪɴꜱ ʟɪɴᴋ\n"
+            f"⚠️ **ᴡᴀʀɴɪɴɢ:** {count}/{limit}\n\n"
+            "**ɴᴏᴛɪᴄᴇ: ʀᴇᴍᴏᴠᴇ ʟɪɴᴋ ꜰʀᴏᴍ ʏᴏᴜʀ ʙɪᴏ**"
         )
 
         kb = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("❌ 𝐂αиᴄɛƖ 𝐖αяиɪиɢ", callback_data=f"cancel_warn_{user_id}"),
-                InlineKeyboardButton("✅ 𝐖нιтɛƖιƨт", callback_data=f"whitelist_{user_id}")
+                InlineKeyboardButton("❌ ᴄᴀɴᴄᴇʟ ᴡᴀʀɴ", callback_data=f"cancel_warn_{user_id}"),
+                InlineKeyboardButton("✅ ᴡʜɪᴛᴇʟɪꜱᴛ", callback_data=f"whitelist_{user_id}")
             ],
-            [InlineKeyboardButton("🗑️ 𝐂Ɩσƨɛ", callback_data="close")]
+            [InlineKeyboardButton("🗑️ ᴄʟᴏꜱᴇ", callback_data="close")]
         ])
-
         sent = await message.reply_text(warning_text, reply_markup=kb)
 
         if count >= limit:
             try:
                 if penalty == "mute":
                     await client.restrict_chat_member(chat_id, user_id, ChatPermissions())
-                    await sent.edit_text(f"🔇 **{mention} 𝐌ʋтɛᴅ ƒσя 𝐁ɪσ-𝐋ɪиᴋ.**")
+                    kb = InlineKeyboardMarkup([[InlineKeyboardButton("✅ ᴜɴᴍᴜᴛᴇ", callback_data=f"unmute_{user_id}")]])
+                    await sent.edit_text(f"{mention} ʜᴀꜱ ʙᴇᴇɴ 🔇 ᴍᴜᴛᴇᴅ ꜰᴏʀ [ʟɪɴᴋ ɪɴ ʙɪᴏ].", reply_markup=kb)
                 else:
                     await client.ban_chat_member(chat_id, user_id)
-                    await sent.edit_text(f"🔨 **{mention} 𝐁αииɛᴅ ƒσя 𝐁ɪσ-𝐋ɪиᴋ.**")
+                    kb = InlineKeyboardMarkup([[InlineKeyboardButton("✅ ᴜɴʙᴀɴ", callback_data=f"unban_{user_id}")]])
+                    await sent.edit_text(f"{mention} ʜᴀꜱ ʙᴇᴇɴ 🔨 ʙᴀɴɴᴇᴅ ꜰᴏʀ [ʟɪɴᴋ ɪɴ ʙɪᴏ].", reply_markup=kb)
             except errors.ChatAdminRequired:
-                await sent.edit_text("⚠️ 𝐈 𝐃σи’т 𝐇αᴠɛ 𝐏ɛямɪƨƨɪσи 𝐓σ 𝐌ʋтɛ/𝐁αи 𝐔ƨɛяƨ.")
+                await sent.edit_text("ɪ ᴅᴏɴᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴛᴏ ᴘᴜɴɪꜱʜ ᴜꜱᴇʀꜱ.")
     else:
         await reset_warnings(chat_id, user_id)
 
-
-# =================== Run Bot ===================
+# =================== RUN BOT ===================
 def biolink():
     """Start the BioLink bot instance."""
     app.run()
