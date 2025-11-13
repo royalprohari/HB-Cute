@@ -292,8 +292,8 @@ SHAYRI = [ " **𝑷𝒆𝒏𝒏𝒆𝒚 𝑵𝒆 𝑷𝒂𝒌𝒌𝒂 𝑷𝒂�
 SHAYRI_COMMAND = ["pickupline", "uruttu", "urutu", "pickup"]
 
 @app.on_message(
-    filters.command(SHAYRI_COMMAND) & filters.group
-) @language
+    filters.command(SHAYRI_COMMAND) & filters.group)
+@language
 async def shayri_group(client: Client, message: Message, _):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
@@ -310,8 +310,8 @@ async def shayri_group(client: Client, message: Message, _):
 
 
 @app.on_message(
-    filters.command(SHAYRI_COMMAND) & filters.private
-) @language
+    filters.command(SHAYRI_COMMAND) & filters.private)
+@language
 async def shayri_private(client: Client, message: Message, _):
     await message.reply_text(
         f"<blockquote>{random.choice(SHAYRI)}</blockquote>",
