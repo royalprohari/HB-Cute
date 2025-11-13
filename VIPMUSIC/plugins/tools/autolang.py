@@ -29,7 +29,7 @@ def languages_keyboard(_):
     return keyboard
 
 
-@app.on_chat_member_updated(filters.group | filters.supergroup)
+@app.on_chat_member_updated(filters.group)
 async def send_lang_message(_, member: ChatMemberUpdated):
     """Automatically sends the set language message when the bot is added to a group."""
 
