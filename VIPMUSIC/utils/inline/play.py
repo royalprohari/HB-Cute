@@ -32,7 +32,7 @@ def track_markup(_, user_id, channel, fplay):
         ],
         [
             InlineKeyboardButton(
-                text="💕 𝐌𖽙𖽷𖽞 🦋",
+                text=_["S_B_6"],
                 callback_data=f"PanelMarkup None|{chat_id}",
             ),
         ],
@@ -256,7 +256,7 @@ def stream_markup_timer(_, videoid, chat_id, played, dur):
         ],
         [
             InlineKeyboardButton(
-                text="💕 𝐅𖽞꘍𖾓𖽪𖽷𖾔𖾗 🦋",
+                text=_["S_B_4"],
                 callback_data=f"Pages Forw|0|{videoid}|{chat_id}",
             ),
         ],
@@ -276,7 +276,7 @@ def stream_markup(_, videoid, chat_id):
     ],
     [
         InlineKeyboardButton(
-            text="💕 𝐀𖽴ᵥ꘍𖽡𖽝𖾔 🦋",
+            text=_["S_B_10"],
             callback_data=f"MainMarkup {videoid}|{chat_id}",
             ),
         ],
@@ -410,7 +410,7 @@ def queue_markup(_, videoid, chat_id):
         ],
         [
             InlineKeyboardButton(
-                text="💕 𝐌𖽙𖽷𖾔 🦋",
+                text=_["S_B_6"],
                 callback_data=f"PanelMarkup None|{chat_id}",
             ),
         ],
@@ -695,11 +695,11 @@ def panel_markup_1(_, videoid, chat_id):
         ],
         [
             InlineKeyboardButton(
-                text="💕 𝐇𖽙𖽧𖾔 🦋",
+                text=_["MENU_BUTTON"],
                 callback_data=f"Pages Back|2|{videoid}|{chat_id}",
             ),
             InlineKeyboardButton(
-                text="💕 𝐍𖾔𝅃𖾓 🦋",
+                text=_["NEXT_BUTTON"],
                 callback_data=f"Pages Forw|2|{videoid}|{chat_id}",
             ),
         ],
@@ -739,7 +739,7 @@ def panel_markup_2(_, videoid, chat_id):
             ],
         [
             InlineKeyboardButton(
-                text="💕 𝐁꘍𖽝ᴋ 🦋",
+                text=_["BACK_BUTTON"],
                 callback_data=f"Pages Back|1|{videoid}|{chat_id}",
             ),
         ],
@@ -756,31 +756,31 @@ def panel_markup_5(_, videoid, chat_id):
         ],
         [
             InlineKeyboardButton(
-                text="⌯ 𝐏𖾘꘍ʏ𖾘𖽹𖾗𖾓 ⌯",
+                text=_["P_LIST_BUTTON"],
                 callback_data=f"vip_playlist {videoid}",
             ),
             InlineKeyboardButton(
-                text="⌯ 𝐂𖽙𖽡𖾓𖾖𖽙𖾘𖾗 ⌯",
+                text=_["CONTROL_BUTTON"],
                 callback_data=f"Pages Back|3|{videoid}|{chat_id}",
             ),
         ],
         [
             InlineKeyboardButton(
-                text="⌯ 𝐕𖽹𖽴𖽞𖽙 ⌯",
+                text=_["VIDEO_BUTTON"],
                 callback_data=f"downloadvideo {videoid}",
             ),
             InlineKeyboardButton(
-                text="⌯ 𝐀𖽪𖽴𖽹𖽙 ⌯",
+                text=_["AUDIO_BUTTON"],
                 callback_data=f"downloadaudio {videoid}",
             ),
         ],
         [
             InlineKeyboardButton(
-                text="💕 𝐇𖽙𖽧𖽞 🦋",
+                text=_["MENU_BUTTON"],
                 callback_data=f"MainMarkup {videoid}|{chat_id}",
             ),
             InlineKeyboardButton(
-                text="💕 𝐍𖾔𝅃𖾓 🦋",
+                text=_["NEXT_BUTTON"],
                 callback_data=f"Pages Forw|1|{videoid}|{chat_id}",
             ),
         ],
@@ -814,7 +814,7 @@ def panel_markup_3(_, videoid, chat_id):
             ],
         [
             InlineKeyboardButton(
-                text="💕 𝐁꘍𖽝ᴋ 🦋",
+                text=_["BACK_BUTTON"],
                 callback_data=f"Pages Back|2|{videoid}|{chat_id}",
             ),
         ],
@@ -1035,7 +1035,7 @@ def panel_markup_4(_, vidid, chat_id, played, dur):
         ],
         [
             InlineKeyboardButton(
-                text="💕 𝐇𖽙𖽧𖽞 🦋",
+                text=_["MENU_BUTTON"],
                 callback_data=f"MainMarkup {vidid}|{chat_id}",
             ),
         ],
