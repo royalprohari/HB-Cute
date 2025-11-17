@@ -14,7 +14,7 @@ from VIPMUSIC.utils.database import get_banned_users, get_gbanned
 from config import BANNED_USERS
 from VIPMUSIC import telethn
 
-from BioLink.biolink import biolink  # 👈 import BioLink 
+#from BioLink.biolink import biolink  # 👈 import BioLink 
 
 async def init():
     if (
@@ -41,11 +41,11 @@ async def init():
     
     # ✅ Start BioLink only if enabled-- BioLink Start
     
-    if getattr(config, "BIO_LINK_ENABLED", False):
-        await biolink()
-        LOGGER("VIPMUSIC").info("✅ BioLink module started.")
-    else:
-        LOGGER("VIPMUSIC").info("🚫 BioLink module disabled by config.")
+   # if getattr(config, "BIO_LINK_ENABLED", False):
+      #  await biolink()
+    #    LOGGER("VIPMUSIC").info("✅ BioLink module started.")
+  #  else:
+       # LOGGER("VIPMUSIC").info("🚫 BioLink module disabled by config.")
 
     #------Bio Lknn End----------
     
