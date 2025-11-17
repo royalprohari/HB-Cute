@@ -38,15 +38,7 @@ async def init():
     except:
         pass
     await app.start()
-    
-    # ---------------------------------------------------
-    #  ✅ Initialize BioLink database BEFORE plugin import
-    # ---------------------------------------------------
-    from VIPMUSIC.plugins.admins.biolink import init_db
-    await init_db()
-    LOGGER("VIPMUSIC").info("📦 BioLink DB initialized.")
 
-    #------Bio Lknn End----------
     # ---------------------------------------------------
     # Load all plugins
     # ---------------------------------------------------
