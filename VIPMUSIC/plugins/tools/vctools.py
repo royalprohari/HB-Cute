@@ -8,20 +8,25 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 # vc on
 @app.on_message(filters.video_chat_started)
 @language
-async def brah(_, msg):
+async def brah(_, msg: Message):
     await msg.reply(_["VC_START"])
 
 # vc off
 @app.on_message(filters.video_chat_ended)
 @language
-async def brah2(_, msg):
+async def brah2(_, msg: Message):
     await msg.reply(_["VC_END"])
 
-# invite members on vc
+# invite members to vc
 @app.on_message(filters.video_chat_members_invited)
 @language
-async def brah3(app: app, message: Message):
-    text = f"<blockquote>**нɛʏ,\n{message.from_user.mention}</blockquote>\n<blockquote> _[VC_INVITE]</blockquote>**"
+async def brah3(_, message: Message):
+    app = message._client
+
+    text = (
+        f"<blockquote>**нɛʏ, {message.from_user.mention}**</blockquote>"
+        f"<blockquote>{_['VC_INVITE']}</blockquote>"
+    )
     x = 0
     for user in message.video_chat_members_invited.users:
         try:
