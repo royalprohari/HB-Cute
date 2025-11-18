@@ -100,14 +100,12 @@ async def add_reaction_name(client, message: Message):
     ok, debug = await is_admin_or_sudo(client, message)
     if not ok:
         return await message.reply_text(
-            f"⚠️ Only admins or sudo users can add reaction triggers.\n\nDebug: `{debug}`",
-            parse_mode="markdown"
+            f"⚠️ Only admins or sudo users can add reaction triggers.\n\nDebug: `{debug}`"
         )
 
     if len(message.command) < 2:
         return await message.reply_text(
-            "Usage: `/addreact <keyword_or_username>`",
-            parse_mode="markdown"
+            "Usage: `/addreact <keyword_or_username>`"
         )
 
     raw = message.text.split(None, 1)[1].strip()
@@ -133,7 +131,7 @@ async def add_reaction_name(client, message: Message):
     if resolved_id:
         msg += f" (id: `{resolved_id}`)"
 
-    await message.reply_text(msg, parse_mode="markdown")
+    await message.reply_text(msg)
 
 # ---------------- /delreact ----------------
 @app.on_message(filters.command("delreact") & ~BANNED_USERS)
@@ -141,14 +139,12 @@ async def delete_reaction_name(client, message: Message):
     ok, debug = await is_admin_or_sudo(client, message)
     if not ok:
         return await message.reply_text(
-            f"⚠️ Only admins or sudo users can delete reaction triggers.\n\nDebug: `{debug}`",
-            parse_mode="markdown"
+            f"⚠️ Only admins or sudo users can delete reaction triggers.\n\nDebug: `{debug}`"
         )
 
     if len(message.command) < 2:
         return await message.reply_text(
-            "Usage: `/delreact <keyword_or_username>`",
-            parse_mode="markdown"
+            "Usage: `/delreact <keyword_or_username>`"
         )
 
     raw = message.text.split(None, 1)[1].strip().lower().lstrip("@")
@@ -171,9 +167,9 @@ async def delete_reaction_name(client, message: Message):
         pass
 
     if removed:
-        return await message.reply_text(f"🗑 Removed `{raw}`.", parse_mode="markdown")
+        return await message.reply_text(f"🗑 Removed `{raw}`.")
     else:
-        return await message.reply_text(f"❌ `{raw}` not found.", parse_mode="markdown")
+        return await message.reply_text(f"❌ `{raw}` not found.")
 
 # ---------------- /reactlist ----------------
 @app.on_message(filters.command("reactlist") & ~BANNED_USERS)
@@ -182,7 +178,7 @@ async def list_reactions(client, message: Message):
         return await message.reply_text("ℹ️ No triggers found.")
 
     text = "\n".join(f"• `{m}`" for m in sorted(custom_mentions))
-    await message.reply_text(f"**🧠 Reaction Triggers:**\n{text}", parse_mode="markdown")
+    await message.reply_text(f"**🧠 Reaction Triggers:**\n{text}")
 
 # ---------------- /clearreact ----------------
 @app.on_message(filters.command("clearreact") & ~BANNED_USERS)
@@ -190,8 +186,7 @@ async def clear_reactions(client, message: Message):
     ok, debug = await is_admin_or_sudo(client, message)
     if not ok:
         return await message.reply_text(
-            f"⚠️ Only admins or sudo users can clear reactions.\n\nDebug: `{debug}`",
-            parse_mode="markdown"
+            f"⚠️ Only admins or sudo users can clear reactions.\n\nDebug: `{debug}`"
         )
 
     await COLLECTION.delete_many({})
