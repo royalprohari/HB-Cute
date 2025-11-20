@@ -348,7 +348,10 @@ async def schedule_daily_poster():
 # -------------------------------------------------------------------
 # START SCHEDULER SAFELY (PYROGRAM v2)
 # -------------------------------------------------------------------
-@app.on_ready
-async def start_scheduler(_, __):
-    print("[ranking] Starting daily scheduler…")
-    asyncio.create_task(schedule_daily_poster())
+@app.on_event("start")
+async def start_scheduler():
+    try:
+        print("[ranking] rankink, myrank")
+        asyncio.create_task(schedule_daily_poster())
+    except Exception as e:
+        print(f"[ranking] Failed to start scheduler: {e}")
