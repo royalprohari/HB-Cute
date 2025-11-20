@@ -1,7 +1,7 @@
 from pyrogram import filters
 from pymongo import MongoClient
 from VIPMUSIC import app
-from config import MONGO_DB_URI
+from config import MONGO_DB_URI, RANKING_PIC
 import json
 from json import loads
 import telegram
@@ -15,7 +15,7 @@ user_data = {}
 
 today = {}
 
-pic = "https://graph.org/file/ffdb1be822436121cf5fd.png"
+#RANKING_PIC = "https://graph.org/file/ffdb1be822436121cf5fd.png"
 
 
 # ------------------- WATCHER ----------------------- #
@@ -75,7 +75,7 @@ async def today_(_, message):
                 [[InlineKeyboardButton("𝐎ᴠᴇᴇᴀʟʟ", callback_data="overall")]]
             )
 
-            await message.reply_photo(photo=pic, caption=response, reply_markup=button)
+            await message.reply_photo(photo=RANKING_PIC, caption=response, reply_markup=button)
         else:
             await message.reply_text("No data available for today.")
 
@@ -104,7 +104,7 @@ async def ranking(_, message):
         [[InlineKeyboardButton("𝐓ᴏᴅᴀʏ", callback_data="today")]]
     )
 
-    await message.reply_photo(photo=pic, caption=response, reply_markup=button)
+    await message.reply_photo(photo=RANKING_PIC, caption=response, reply_markup=button)
 
 
 # -------------------- callback regex -------------------- #
