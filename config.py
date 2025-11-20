@@ -9,7 +9,7 @@ load_dotenv()
 # Get this value from my.telegram.org/apps
 API_ID = int(getenv("API_ID","8045459"))
 API_HASH = getenv("API_HASH", "e6d1f09120e17a4372fe022dde88511b")
-BOT_TOKEN = getenv("BOT_TOKEN", "8204653134:AAFLhxAIWEV937aucjUQP2T32W6DZsy8-QE")
+BOT_TOKEN = getenv("BOT_TOKEN", "7992290736:AAGD8qaq9az6oFSkoU8bnDZQWELrVUZLuJA")
 
 # Get your mongo url from cloud.mongodb.com
 OWNER_USERNAME = getenv("OWNER_USERNAME","rajeshrakis")
@@ -121,7 +121,7 @@ YUMI_PICS = [
 ]
 
 START_IMG_URL = getenv(
-    "START_IMG_URL", "https://telegra.ph/file/e5aaa494015bccbe1ec85.jpg"
+    "START_IMG_URL", "https://files.catbox.moe/yza560.jpg"
 )
 PING_IMG_URL = getenv(
     "PING_IMG_URL", "https://graph.org/file/ffdb1be822436121cf5fd.png"
