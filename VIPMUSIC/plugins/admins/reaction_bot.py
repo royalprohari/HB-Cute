@@ -40,6 +40,14 @@ if not SAFE_REACTIONS:
 # ---------------- PER-CHAT NON-REPEATING EMOJI ROTATION ----------------
 chat_used_reactions: Dict[int, Set[str]] = {}
 
+def is_command_msg(msg: Message) -> bool:
+    if not msg.entities:
+        return False
+    for e in msg.entities:
+        if e.type == "bot_command":
+            return True
+    return False
+    
 def next_emoji(chat_id: int) -> str:
     if chat_id not in chat_used_reactions:
         chat_used_reactions[chat_id] = set()
@@ -177,65 +185,53 @@ async def reaction_callback(client, query: CallbackQuery):
 # -------------------------------------------------------------------------
 # 🔥 FIXED — AUTO REACTION WITHOUT BLOCKING COMMANDS
 # -------------------------------------------------------------------------
-@app.on_message(
-    (filters.text | filters.caption)
-    & ~filters.command([])      # ← this EXCLUDES ALL slash commands
-    & ~BANNED_USERS
-)
+@app.on_message((filters.text | filters.caption) & ~BANNED_USERS)
 async def react_on_mentions(client, message: Message):
 
     if not REACTION_ENABLED:
+        return
+
+    # ❗ STOP BLOCKING ALL BOT COMMANDS
+    if is_command_msg(message):
         return
 
     try:
         chat_id = message.chat.id
         text = (message.text or message.caption or "").lower()
         entities = (message.entities or []) + (message.caption_entities or [])
+
         usernames, user_ids = set(), set()
 
         for ent in entities:
             if ent.type == "mention":
-                uname = (message.text or message.caption)[ent.offset:ent.offset + ent.length].lstrip("@").lower()
+                src = message.text or message.caption
+                uname = src[ent.offset:ent.offset + ent.length].lstrip("@").lower()
                 usernames.add(uname)
+
             elif ent.type == "text_mention" and ent.user:
                 user_ids.add(ent.user.id)
                 if ent.user.username:
                     usernames.add(ent.user.username.lower())
 
-        reacted = False
-
+        # username triggers
         for uname in usernames:
             if uname in custom_mentions:
                 emoji = next_emoji(chat_id)
-                try:
-                    await message.react(emoji)
-                except:
-                    await message.react("❤️")
-                reacted = True
-                break
+                return await message.react(emoji)
 
-        if not reacted:
-            for uid in user_ids:
-                if f"id:{uid}" in custom_mentions:
-                    emoji = next_emoji(chat_id)
-                    try:
-                        await message.react(emoji)
-                    except:
-                        await message.react("❤️")
-                    reacted = True
-                    break
+        # id triggers
+        for uid in user_ids:
+            if f"id:{uid}" in custom_mentions:
+                emoji = next_emoji(chat_id)
+                return await message.react(emoji)
 
-        if not reacted:
-            for trig in custom_mentions:
-                if trig.startswith("id:"):
-                    continue
-                if trig in text or f"@{trig}" in text:
-                    emoji = next_emoji(chat_id)
-                    try:
-                        await message.react(emoji)
-                    except:
-                        await message.react("❤️")
-                    break
+        # keyword triggers
+        for trig in custom_mentions:
+            if trig.startswith("id:"):
+                continue
+            if trig in text or f"@{trig}" in text:
+                emoji = next_emoji(chat_id)
+                return await message.react(emoji)
 
     except Exception as e:
         print(f"[react_on_mentions] error: {e}")
