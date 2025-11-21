@@ -15,6 +15,7 @@ from config import BANNED_USERS
 from VIPMUSIC import telethn
 
 #from BioLink.biolink import biolink  # 👈 import BioLink 
+from autorestart import autorestart
 
 async def init():
     if (
@@ -64,3 +65,11 @@ async def init():
 if __name__ == "__main__":
     telethn.start(bot_token=config.BOT_TOKEN)
     asyncio.get_event_loop().run_until_complete(init())
+    #AutoRestart
+    log("AutoRestart system started.")
+    try:
+        autorestart()
+    except KeyboardInterrupt:
+        log("AutoRestart system stopped manually.")
+    except Exception as e:
+        log(f"Unexpected error: {e}")
