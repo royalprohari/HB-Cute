@@ -52,7 +52,7 @@ gpytranslate
 openai==0.28.0
 mpv
 moviepy
-python-telegram-bot==21.1.1
+#python-telegram-bot==21.1.1
 stripe==10.7.0
 mysql-connector-python==9.0.0
 telebot==0.0.5
